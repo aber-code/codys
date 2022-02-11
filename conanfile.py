@@ -15,6 +15,8 @@ class CppStarterProject(ConanFile):
         "docopt.cpp/0.6.2",
         "fmt/8.0.1",
         "spdlog/1.9.2",
+        "boost/1.73.0",
+        "mp-units/0.7.0"
     )
     generators = "cmake", "gcc", "txt", "cmake_find_package"
 
