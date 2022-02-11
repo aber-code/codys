@@ -33,8 +33,8 @@ jobs:
           - windows-2019
         compiler:
           # you can specify the version after `-` like "llvm-13.0.0".
-          - llvm-13.0.0
-          - gcc-11.2.0
+          - "llvm-13.0.0"
+          - "gcc-11.2.0"
         generator:
           - "Ninja Multi-Config"
         build_type:
@@ -108,6 +108,7 @@ jobs:
           key: ${{ runner.os }}-${{ matrix.compiler }}-${{matrix.build_type}}-${{matrix.generator}}-${{matrix.developer_mode}}-${{ hashFiles('**/CMakeLists.txt') }}-${{ hashFiles('./conanfile.txt')}}-${{ hashFiles('./vcpkg.json')}}
           restore-keys: |
             ${{ runner.os }}-${{ matrix.compiler }}-${{matrix.build_type}}-${{matrix.generator}}-${{matrix.developer_mode}}
+
       - name: Setup Cpp
         uses: aminya/setup-cpp@v1
         with:
@@ -131,10 +132,12 @@ jobs:
       - name: Configure CMake
         run: |
           cmake -S . -B ./build -G "${{matrix.generator}}" -DCMAKE_BUILD_TYPE:STRING=${{matrix.build_type}} -DENABLE_DEVELOPER_MODE:BOOL=${{matrix.developer_mode}} -DOPT_ENABLE_COVERAGE:BOOL=${{ matrix.build_type == 'Debug' }}
+
       - name: Build
         # Execute the build.  You can specify a specific target with "--target <NAME>"
         run: |
           cmake --build ./build --config ${{matrix.build_type}}
+
       - name: Unix - Test and coverage
         if: runner.os != 'Windows'
         working-directory: ./build
@@ -143,11 +146,13 @@ jobs:
         run: |
           ctest -C ${{matrix.build_type}}
           gcovr -j ${{env.nproc}} --delete --root ../ --print-summary --xml-pretty --xml coverage.xml . --gcov-executable '${{ matrix.gcov_executable }}'
+
       - name: Windows - Test and coverage
         if: runner.os == 'Windows'
         working-directory: ./build
         run: |
           OpenCppCoverage.exe --export_type cobertura:coverage.xml --cover_children -- ctest -C ${{matrix.build_type}}
+
       - name: Publish to codecov
         uses: codecov/codecov-action@v2
         with:
