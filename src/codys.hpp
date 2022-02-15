@@ -1,3 +1,5 @@
+#pragma once
+
 #include <algorithm>
 #include <array>
 #include <boost/hana.hpp>
@@ -10,12 +12,6 @@
 #include <span>
 #include <tuple>
 #include <utility>
-
-#include <units/isq/si/acceleration.h>
-#include <units/isq/si/speed.h>
-#include <units/isq/si/time.h>
-#include <units/isq/si/length.h>
-
 
 template <typename T, typename SystemType, std::size_t N>
 concept ExpressionFunction = requires(T x, SystemType t,
@@ -213,38 +209,3 @@ struct StateSpaceSystem {
             });
     }
 };
-
-using Position = State<class Position_, units::isq::si::length<units::isq::si::metre>>;
-using Velocity = State<class Vel_, units::isq::si::speed<units::isq::si::metre_per_second>>;
-using Acceleration = State<class Acc_, units::isq::si::acceleration<units::isq::si::metre_per_second_sq>>;
-
-using BasicMotions = System<Position, Velocity>;
-struct StateSpace {
-    constexpr static auto make_dot() {
-        constexpr auto e1 = dot<Velocity>(Velocity{});
-        constexpr auto e2 = dot<Position>(Velocity{});
-        return boost::hana::make_tuple(e1, e2);
-    }
-};
-
-constexpr void evaluate_meta(std::span<const double, 2> arr,
-                             std::span<double, 2> out) {
-    StateSpaceSystem<BasicMotions, StateSpace>::evaluate(arr, out);
-}
-
-constexpr void evaluate_direct(std::span<const double, 2> arr,
-                               std::span<double, 2> out) {
-    out[0] = arr[1] + arr[0];
-}
-
-int main() {
-    constexpr std::array arr{1.0, 2.0};
-
-    std::array out{1.0, 2.0};
-
-    evaluate_meta(arr, out);
-
-    std::copy(std::begin(out), std::end(out),
-              std::ostream_iterator<double>(std::cout, " "));
-    std::cout << "\n";
-}
