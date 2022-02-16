@@ -13,8 +13,9 @@ using Velocity = State<class Vel_, units::isq::si::speed<units::isq::si::metre_p
 
 using BasicMotions = System<Position, Velocity>;
 
-TEST_CASE("System return right state indices")
+TEST_CASE("System return right state indices", "[System]")
 {
   STATIC_REQUIRE(BasicMotions::idx_of<Position>() == 0);
   STATIC_REQUIRE(BasicMotions::idx_of<Velocity>() == 1);
 }
+

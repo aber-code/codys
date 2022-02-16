@@ -29,8 +29,6 @@ struct Contains<T, boost::hana::tuple<Ts...>> {
         constexpr std::array<bool, sizeof...(Ts)> a{
             {std::is_same<T, Ts>::value...}};
 
-        // You might easily handle duplicate index too (take the last, throw,
-        // ...) Here, we select the first one.
         return std::find(a.begin(), a.end(), true) != a.end();
     }();
 };
@@ -44,15 +42,11 @@ struct Index<T, boost::hana::tuple<Ts...>> {
         constexpr std::array<bool, sizeof...(Ts)> a{
             {std::is_same<T, Ts>::value...}};
 
-        // You might easily handle duplicate index too (take the last, throw,
-        // ...) Here, we select the first one.
         const auto it = std::find(a.begin(), a.end(), true);
 
-        // You might choose other options for not present.
-
-        // As we are in constant expression, we will have compilation error.
-        // and not a runtime expection :-)
-        if (it == a.end()) throw std::runtime_error("Not present");
+        if (it == a.end()) {
+            throw std::runtime_error("Not present");
+        }
 
         return std::distance(a.begin(), it);
     }();
@@ -67,17 +61,11 @@ struct TagIndex<T, boost::hana::tuple<Ts...>> {
         constexpr std::array<bool, sizeof...(Ts)> a{
             {std::is_same<T, typename Ts::Operand>::value...}};
 
-        // You might easily handle duplicate index too (take the last, throw,
-        // ...) Here, we select the first one.
         const auto it = std::find(a.begin(), a.end(), true);
-
-        // You might choose other options for not present.
-
-        // As we are in constant expression, we will have compilation error.
-        // and not a runtime expection :-)
-        if (it == a.end())
+        if (it == a.end()) {
             return static_cast<decltype(std::distance(a.begin(), it))>(
                 sizeof...(Ts));
+        }
 
         return std::distance(a.begin(), it);
     }();
@@ -96,7 +84,7 @@ constexpr bool all_states_have_derivatives() {
                                                                   idx))>,
             std::remove_cvref_t<decltype(StateSpaceType::make_dot())>>::index;
 
-        ret &= ind >= 0 && ind < stateSize;
+        ret &= (ind >= 0) && (ind < stateSize);
     });
 
     return ret;
@@ -133,8 +121,6 @@ struct State {
         return arr[SystemType::template idx_of<State<Tag, Unit>>()];
     }
 };
-
-
 
 template <typename... States>
 struct System {
@@ -203,7 +189,8 @@ struct StateSpaceSystem {
 
         boost::hana::for_each(
             stateIndices, [statesIn, derivativesOut, dots](auto idx) {
-                derivativesOut[idx] =
+                constexpr auto outIdx = SystemType::template idx_of<typename std::remove_cvref_t<decltype(boost::hana::at(dots, idx))>::Operand>();
+                derivativesOut[outIdx] =
                     boost::hana::at(dots, idx).template evaluate<SystemType>(
                         statesIn);
             });
