@@ -1,13 +1,9 @@
 #include <catch2/catch.hpp>
 
 #include <array>
-#include <iostream>
-#include <span>
-
 
 #include <units/isq/si/acceleration.h>
 #include <units/isq/si/speed.h>
-#include <units/isq/si/time.h>
 #include <units/isq/si/length.h>
 
 #include <codys.hpp>
@@ -25,7 +21,7 @@ struct StateSpace {
     }
 };
 
-TEST_CASE("System is avaluated", "[StateSpace]")
+TEST_CASE("System is evaluated", "[StateSpace]")
 {
   constexpr std::array arr{1.0, 2.0};
 

@@ -1,14 +1,20 @@
 #include <catch2/catch.hpp>
 
-constexpr unsigned int Factorial(unsigned int number)// NOLINT(misc-no-recursion)
-{
-  return number <= 1 ? number : Factorial(number - 1) * number;
-}
+#include <array>
 
-TEST_CASE("Factorials are computed with constexpr", "[factorial]")
+#include <units/isq/si/acceleration.h>
+#include <units/isq/si/speed.h>
+#include <units/isq/si/length.h>
+
+#include <codys.hpp>
+
+using Position = State<class Position_, units::isq::si::length<units::isq::si::metre>>;
+using Velocity = State<class Vel_, units::isq::si::speed<units::isq::si::metre_per_second>>;
+
+using BasicMotions = System<Position, Velocity>;
+
+TEST_CASE("System return right state indices")
 {
-  STATIC_REQUIRE(Factorial(1) == 1);
-  STATIC_REQUIRE(Factorial(2) == 2);
-  STATIC_REQUIRE(Factorial(3) == 6);
-  STATIC_REQUIRE(Factorial(10) == 3628800);
+  STATIC_REQUIRE(BasicMotions::idx_of<Position>() == 0);
+  STATIC_REQUIRE(BasicMotions::idx_of<Velocity>() == 1);
 }
