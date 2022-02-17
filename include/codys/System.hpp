@@ -4,6 +4,8 @@
 
 #include <boost/hana/tuple.hpp>
 
+namespace codys {
+
 namespace detail {
 
 template <class T, class Tuple>
@@ -36,3 +38,5 @@ struct System {
         return detail::Index<StateType, StatesType>::index;
     }
 };
+
+} // namespace codys

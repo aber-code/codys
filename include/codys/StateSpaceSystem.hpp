@@ -7,6 +7,8 @@
 #include <span>
 #include <utility>
 
+namespace codys {
+
 template <StateSystem SystemType, DerivativeSystemOf<SystemType> StateSpaceType>
 struct StateSpaceSystem {
     constexpr static std::size_t stateSize = decltype(boost::hana::size(
@@ -29,3 +31,5 @@ struct StateSpaceSystem {
             });
     }
 };
+
+} // namespace codys

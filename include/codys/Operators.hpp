@@ -6,6 +6,8 @@
 #include <boost/hana/concat.hpp>
 
 #include <span>
+ 
+namespace codys {
 
 template <class Lhs, class Rhs, class Unit_>
 struct Plus {
@@ -27,3 +29,5 @@ constexpr auto operator+([[maybe_unused]] State<Lhs, Unit> lhs,
                          [[maybe_unused]] State<Rhs, Unit> rhs) {
     return Plus<State<Lhs, Unit>, State<Rhs, Unit>, Unit>{};
 }
+
+} // namespace codys

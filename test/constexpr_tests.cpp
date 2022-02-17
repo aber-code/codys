@@ -8,14 +8,14 @@
 
 #include <boost/hana/tuple.hpp>
 
-#include <codys.hpp>
+#include <codys/codys.hpp>
 
 using PositionTag = class Position_;
 using PositionUnit = units::isq::si::length<units::isq::si::metre>;
-using Position = State<PositionTag, PositionUnit>;
-using Velocity = State<class Vel_, units::isq::si::speed<units::isq::si::metre_per_second>>;
+using Position = codys::State<PositionTag, PositionUnit>;
+using Velocity = codys::State<class Vel_, units::isq::si::speed<units::isq::si::metre_per_second>>;
 
-using BasicMotions = System<Position, Velocity>;
+using BasicMotions = codys::System<Position, Velocity>;
 
 TEST_CASE("System return right state indices", "[System]")
 {

@@ -6,6 +6,8 @@
 
 #include <span>
 
+namespace codys {
+
 namespace detail {
 
 template<class Unit>
@@ -30,3 +32,5 @@ template <StateType StateName, class Expression>
 constexpr auto dot([[maybe_unused]] Expression e) {
     return Derivative<StateName, Expression>();
 }
+
+} // namespace codys

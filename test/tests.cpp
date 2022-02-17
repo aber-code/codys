@@ -6,16 +6,16 @@
 #include <units/isq/si/speed.h>
 #include <units/isq/si/length.h>
 
-#include <codys.hpp>
+#include <codys/codys.hpp>
 
-using Position = State<class Position_, units::isq::si::length<units::isq::si::metre>>;
-using Velocity = State<class Vel_, units::isq::si::speed<units::isq::si::metre_per_second>>;
+using Position = codys::State<class Position_, units::isq::si::length<units::isq::si::metre>>;
+using Velocity = codys::State<class Vel_, units::isq::si::speed<units::isq::si::metre_per_second>>;
 
-using BasicMotions = System<Position, Velocity>;
+using BasicMotions = codys::System<Position, Velocity>;
 struct StateSpace {
     constexpr static auto make_dot() {
-        constexpr auto e1 = dot<Velocity>(Velocity{} + Velocity{});
-        constexpr auto e2 = dot<Position>(Velocity{});
+        constexpr auto e1 = codys::dot<Velocity>(Velocity{} + Velocity{});
+        constexpr auto e2 = codys::dot<Position>(Velocity{});
         return boost::hana::make_tuple(e1, e2);
     }
 };
@@ -26,7 +26,7 @@ TEST_CASE("StateSpaceSystem is evaluated correctly", "[StateSpace]")
 
   std::array out{0.0, 0.0};
 
-  StateSpaceSystem<BasicMotions, StateSpace>::evaluate(arr, out);
+  codys::StateSpaceSystem<BasicMotions, StateSpace>::evaluate(arr, out);
 
   REQUIRE(out[0] == Approx(2.0));
   REQUIRE(out[1] == Approx(4.0));

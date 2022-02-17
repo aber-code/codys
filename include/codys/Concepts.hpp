@@ -4,6 +4,8 @@
 #include <boost/hana/size.hpp>
 #include <boost/hana/tuple.hpp>
 
+namespace codys {
+
 namespace detail {
 
 template <class T, class Tuple>
@@ -77,3 +79,5 @@ concept SystemStateFor = StateType<T> && detail::Contains<T, typename SystemType
 
 template <typename T,typename SystemType>
 concept DerivativeSystemOf = StateSystem<SystemType> && detail::all_states_have_derivatives<SystemType, T>();
+
+} // namespace codys

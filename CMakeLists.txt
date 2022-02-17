@@ -77,7 +77,7 @@ if(ENABLE_FUZZING)
   add_subdirectory(fuzz_test)
 endif()
 
-add_subdirectory(src)
+add_subdirectory(include)
 
 option(ENABLE_UNITY "Enable Unity builds of projects" OFF)
 if(ENABLE_UNITY)

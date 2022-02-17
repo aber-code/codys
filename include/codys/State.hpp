@@ -6,6 +6,8 @@
 
 #include <span>
 
+namespace codys {
+
 template <typename Tag_, typename Unit_>
 struct State {
     using Tag = Tag_;
@@ -18,3 +20,5 @@ struct State {
         return arr[SystemType::template idx_of<State<Tag, Unit>>()];
     }
 };
+
+} // namespace codys
