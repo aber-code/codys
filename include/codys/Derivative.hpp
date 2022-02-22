@@ -15,7 +15,7 @@ using derivative_in_time_t = decltype(std::declval<Unit>() / (units::isq::si::ti
 
 } // namespace detail
 
-template <StateType Operand_, class Expression> 
+template <PhysicalType Operand_, class Expression> 
 //requires std::is_same_v<derivative_in_time_t<typename Operand_::Unit>, typename Expression::Unit>
 struct Derivative {
     using Operand = Operand_;
@@ -28,7 +28,7 @@ struct Derivative {
     using depends_on = typename Expression::depends_on;
 };
 
-template <StateType StateName, class Expression>
+template <PhysicalType StateName, class Expression>
 constexpr auto dot([[maybe_unused]] Expression e) {
     return Derivative<StateName, Expression>();
 }

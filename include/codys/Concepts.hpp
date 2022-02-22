@@ -29,7 +29,7 @@ struct TagIndex<T, boost::hana::tuple<Ts...>> {
 
 template <typename SystemType, typename StateSpaceType>
 constexpr bool all_states_have_derivatives() {
-    constexpr auto states = typename SystemType::StatesType{};
+    constexpr auto states = typename SystemType::UnderlyingType{};
     constexpr auto stateSize = decltype(boost::hana::size(states))::value;
     constexpr auto stateIndices = std::make_index_sequence<stateSize>{};
     
@@ -62,22 +62,22 @@ struct Contains<T, boost::hana::tuple<Ts...>> {
 } // namespace detail
 
 template <typename T>
-concept StateType = requires {
+concept PhysicalType = requires {
     typename T::Tag;
     typename T::Unit;
 };
 
 template <typename SystemType>
-concept StateSystem = requires(SystemType sys, typename SystemType::StatesType states) {
-    typename SystemType::StatesType;
+concept TypeIndexedList = requires(SystemType sys, typename SystemType::UnderlyingType states) {
+    typename SystemType::UnderlyingType;
 
    {sys.template idx_of<std::remove_cvref_t<decltype(boost::hana::at(states,boost::hana::int_c<0>))>>()} -> std::same_as<std::size_t>;
 };
 
 template <typename T, typename SystemType>
-concept SystemStateFor = StateType<T> && detail::Contains<T, typename SystemType::StatesType>::value;
+concept SystemStateFor = PhysicalType<T> && detail::Contains<T, typename SystemType::UnderlyingType>::value;
 
-template <typename T,typename SystemType>
-concept DerivativeSystemOf = StateSystem<SystemType> && detail::all_states_have_derivatives<SystemType, T>();
+template <typename T, typename SystemType>
+concept DerivativeSystemOf = TypeIndexedList<SystemType> && detail::all_states_have_derivatives<SystemType, T>();
 
 } // namespace codys

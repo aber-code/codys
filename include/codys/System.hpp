@@ -29,13 +29,13 @@ struct Index<T, boost::hana::tuple<Ts...>> {
 
 } // namespace detail
 
-template <StateType... States>
+template <PhysicalType... States>
 struct System {
-    using StatesType = boost::hana::tuple<States...>;
+    using UnderlyingType = boost::hana::tuple<States...>;
 
-    template <class StateType> requires SystemStateFor<StateType, System<States...>>
+    template <class WantedStateType> requires SystemStateFor<WantedStateType, System<States...>>
     static constexpr std::size_t idx_of() {
-        return detail::Index<StateType, StatesType>::index;
+        return detail::Index<WantedStateType, UnderlyingType>::index;
     }
 };
 
