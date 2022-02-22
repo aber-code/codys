@@ -59,6 +59,9 @@ struct Contains<T, boost::hana::tuple<Ts...>> {
     }();
 };
 
+template<class Unit>
+using derivative_in_time_t = decltype(std::declval<Unit>() / (units::isq::si::time<units::isq::si::second>{}));
+
 } // namespace detail
 
 template <typename T>
@@ -76,6 +79,9 @@ concept TypeIndexedList = requires(SystemType sys, typename SystemType::Underlyi
 
 template <typename T, typename SystemType>
 concept SystemStateFor = PhysicalType<T> && detail::Contains<T, typename SystemType::UnderlyingType>::value;
+
+template<typename Expression, typename Operand>
+concept TimeDerivativeOf = std::is_same_v<detail::derivative_in_time_t<typename Operand::Unit>, typename Expression::Unit>;
 
 template <typename T, typename SystemType>
 concept DerivativeSystemOf = TypeIndexedList<SystemType> && detail::all_states_have_derivatives<SystemType, T>();

@@ -5,18 +5,11 @@
 #include <units/isq/si/time.h>
 
 #include <span>
+#include <type_traits>
 
 namespace codys {
 
-namespace detail {
-
-template<class Unit>
-using derivative_in_time_t = decltype(std::declval<Unit>() / (units::isq::si::time<units::isq::si::second>{}));
-
-} // namespace detail
-
-template <PhysicalType Operand_, class Expression> 
-//requires std::is_same_v<derivative_in_time_t<typename Operand_::Unit>, typename Expression::Unit>
+template <PhysicalType Operand_, TimeDerivativeOf<Operand_> Expression> 
 struct Derivative {
     using Operand = Operand_;
     
