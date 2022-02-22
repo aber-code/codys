@@ -2,7 +2,6 @@
 
 #include <array>
 
-#include <units/isq/si/acceleration.h>
 #include <units/isq/si/speed.h>
 #include <units/isq/si/length.h>
 

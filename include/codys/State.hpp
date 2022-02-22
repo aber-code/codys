@@ -15,7 +15,7 @@ struct State {
 
     using depends_on = boost::hana::tuple<State<Tag, Unit>>;
 
-    template <StateSystem SystemType, std::size_t N>
+    template <class SystemType, std::size_t N>
     constexpr static double evaluate(std::span<const double, N> arr) {
         return arr[SystemType::template idx_of<State<Tag, Unit>>()];
     }
