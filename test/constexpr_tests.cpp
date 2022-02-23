@@ -36,3 +36,9 @@ TEST_CASE("State has right tag as type", "[State]")
 {
   STATIC_REQUIRE(std::is_same_v<Position::Tag, PositionTag>);
 }
+
+TEST_CASE("Derivative has right operand as type", "[Derivative]") 
+{
+  static constexpr auto derivative = codys::dot<Position>(Velocity{});
+  STATIC_REQUIRE(std::is_same_v<decltype(derivative)::Operand, Position>);
+}
