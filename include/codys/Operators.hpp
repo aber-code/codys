@@ -11,11 +11,9 @@ namespace codys {
 
 template <class Lhs, class Rhs, class Unit_>
 struct Plus {
-    using depends_on =
-        decltype(boost::hana::concat(std::declval<typename Lhs::depends_on>(),
-                                     std::declval<typename Rhs::depends_on>()));
+    static constexpr auto depends_on = boost::hana::concat(Lhs::depends_on, Rhs::depends_on);
 
-        using Unit = Unit_;
+    using Unit = Unit_;
 
     template <class SystemType, std::size_t N> 
     constexpr static double evaluate(std::span<const double, N> arr) {
