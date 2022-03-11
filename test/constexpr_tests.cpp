@@ -24,8 +24,7 @@ TEST_CASE("System return right state indices", "[System]")
 
 TEST_CASE("State gives self as depends_on", "[State]")
 {
-  static constexpr auto ref = boost::hana::tuple<Position>();
-  STATIC_REQUIRE(std::is_same_v<decltype(Position::depends_on), decltype(ref)>);
+  STATIC_REQUIRE(std::is_same_v<Position::depends_on, boost::hana::tuple<Position>>);
 }
 
 TEST_CASE("State has right unit as type", "[State]")
@@ -49,5 +48,5 @@ TEST_CASE("Operator Plus has concatination of denepends on", "[Operator]")
 {
   static constexpr auto plus = Position{} + Position{};
   static constexpr auto ref_dependands = boost::hana::tuple<Position,Position>();
-  STATIC_REQUIRE(std::is_same_v<decltype(plus.depends_on), decltype(ref_dependands)>);
+  STATIC_REQUIRE(std::is_same_v<decltype(plus)::depends_on, std::remove_cvref_t<decltype(ref_dependands)>>);
 }
