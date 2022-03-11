@@ -66,7 +66,6 @@ using derivative_in_time_t = decltype(std::declval<Unit>() / (units::isq::si::ti
 
 template <typename T>
 concept PhysicalType = requires {
-    typename T::Tag;
     typename T::Unit;
 };
 
