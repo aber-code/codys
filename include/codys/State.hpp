@@ -8,9 +8,8 @@
 
 namespace codys {
 
-template <typename Tag_, typename Unit_>
+template <typename Tag, typename Unit_>
 struct State {
-    using Tag = Tag_;
     using Unit = Unit_;
 
     static constexpr auto depends_on = boost::hana::tuple<State<Tag, Unit>>();
