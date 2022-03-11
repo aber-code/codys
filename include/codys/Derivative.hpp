@@ -18,7 +18,7 @@ struct Derivative {
         return Expression::template evaluate<SystemType>(arr);
     }
 
-    static constexpr auto depends_on = Expression::depends_on;
+    using depends_on = typename Expression::depends_on;
 };
 
 template <PhysicalType StateName, class Expression>
