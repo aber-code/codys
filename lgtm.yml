@@ -19,6 +19,6 @@ extraction:
     configure:
       command:
         - mkdir build
-        - cmake -D OPT_ENABLE_COVERAGE:BOOL=TRUE -D CMAKE_BUILD_TYPE:STRING=Debug -D ENABLE_DEVELOPER_MODE:BOOL=FALSE  -S . -B build
+        - cmake -D OPT_ENABLE_COVERAGE:BOOL=TRUE -D CMAKE_BUILD_TYPE:STRING=Debug -D CMAKE_C_COMPILER:FILEPATH=/bin/gcc-10 -D CMAKE_CXX_COMPILER:FILEPATH=/bin/g++-10 -D ENABLE_DEVELOPER_MODE:BOOL=FALSE  -S . -B build
     index:
       build_command: cmake --build ./build -- -j2
