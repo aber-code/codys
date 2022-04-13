@@ -10,6 +10,7 @@ extraction:
         - g++-10
         - ccache
       script:
+        - sudo apt-get install -y gcc-10 g++-10
         - mkdir ~/.conan
         - cat /usr/local/share/ca-certificates/semmle-cache-ca/semmle-cache-ca.crt >> ~/.conan/cacert.pem
         - python3 -m pip install --upgrade pip setuptools
