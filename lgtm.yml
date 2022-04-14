@@ -7,9 +7,11 @@ extraction:
   cpp:
     prepare:
       packages:
+        - whereis
         - g++-10
         - ccache
       script:
+        - whereis g++-10
         - mkdir ~/.conan
         - cat /usr/local/share/ca-certificates/semmle-cache-ca/semmle-cache-ca.crt >> ~/.conan/cacert.pem
         - python3 -m pip install --upgrade pip setuptools
@@ -19,6 +21,6 @@ extraction:
     configure:
       command:
         - mkdir build
-        - cmake -D OPT_ENABLE_COVERAGE:BOOL=TRUE -D CMAKE_BUILD_TYPE:STRING=Debug -D CMAKE_C_COMPILER:FILEPATH=/bin/gcc-10 -D CMAKE_CXX_COMPILER:FILEPATH=/bin/g++-10 -D ENABLE_DEVELOPER_MODE:BOOL=FALSE  -S . -B build
+        - cmake -D OPT_ENABLE_COVERAGE:BOOL=TRUE -D CMAKE_BUILD_TYPE:STRING=Debug -D CMAKE_C_COMPILER:FILEPATH=/usr/bin/gcc-10 -D CMAKE_CXX_COMPILER:FILEPATH=/usr/bin/g++-10 -D ENABLE_DEVELOPER_MODE:BOOL=FALSE  -S . -B build
     index:
       build_command: cmake --build ./build -- -j2
