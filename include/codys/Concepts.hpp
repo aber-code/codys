@@ -69,6 +69,11 @@ concept PhysicalType = requires {
     typename T::Unit;
 };
 
+template <typename T>
+concept PhysicalValue = requires (T t) {
+    t.number();
+};
+
 template <typename SystemType>
 concept TypeIndexedList = requires(SystemType sys, typename SystemType::UnderlyingType states) {
     typename SystemType::UnderlyingType;

@@ -11,19 +11,20 @@ namespace codys {
 
 template <PhysicalType Operand_, TimeDerivativeOf<Operand_> Expression> 
 struct Derivative {
+    using depends_on = typename Expression::depends_on;
     using Operand = Operand_;
+
+    Expression expression;
     
     template <class SystemType, std::size_t N>
-    constexpr static double evaluate(std::span<const double, N> arr) {
-        return Expression::template evaluate<SystemType>(arr);
+    constexpr double evaluate(std::span<const double, N> arr) const {
+        return expression.template evaluate<SystemType>(arr);
     }
-
-    using depends_on = typename Expression::depends_on;
 };
 
 template <PhysicalType StateName, class Expression>
-constexpr auto dot([[maybe_unused]] Expression e) {
-    return Derivative<StateName, Expression>();
+constexpr auto dot([[maybe_unused]] Expression expression) {
+    return Derivative<StateName, Expression>{expression};
 }
 
 } // namespace codys
