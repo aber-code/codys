@@ -33,6 +33,8 @@ template <PhysicalType... States>
 struct System {
     using UnderlyingType = boost::hana::tuple<States...>;
 
+    constexpr static std::size_t size = static_cast<std::size_t>(decltype(boost::hana::size(std::declval<UnderlyingType>()))::value);
+
     template <class WantedStateType> requires SystemStateFor<WantedStateType, System<States...>>
     static constexpr std::size_t idx_of() {
         return detail::Index<WantedStateType, UnderlyingType>::index;
