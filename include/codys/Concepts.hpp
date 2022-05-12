@@ -77,7 +77,7 @@ concept PhysicalValue = requires (T t) {
 template <typename SystemType>
 concept TypeIndexedList = requires(SystemType sys, typename SystemType::UnderlyingType states) {
     typename SystemType::UnderlyingType;
-
+   sys.size;
    {sys.template idx_of<std::remove_cvref_t<decltype(boost::hana::at(states,boost::hana::int_c<0>))>>()} -> std::same_as<std::size_t>;
 };
 

@@ -35,25 +35,21 @@ struct StateSpaceSystemIndex {
 
 template <TypeIndexedList SystemType, TypeIndexedList ControlsType, DerivativeSystemOf<SystemType> StateSpaceType>
 struct StateSpaceSystem {
-    constexpr static std::size_t stateSize = decltype(boost::hana::size(
-        std::declval<typename SystemType::UnderlyingType>()))::value;
-    constexpr static std::size_t derivativesSize = decltype(boost::hana::size(
-        std::declval<StateSpaceType>().make_dot()))::value;
+    constexpr static auto stateSize = SystemType::size;
     constexpr static auto stateIndices = std::make_index_sequence<stateSize>{};
-
-    constexpr static std::size_t controlSize = decltype(boost::hana::size(
-        std::declval<typename ControlsType::UnderlyingType>()))::value;
+    constexpr static auto derivativeFunctions = StateSpaceType::make_dot();
+    constexpr static auto derivativeFunctionsSize = decltype(boost::hana::size(derivativeFunctions))::value;
+    constexpr static auto controlSize = ControlsType::size;
 
     constexpr static void evaluate(
         std::span<const double, stateSize + controlSize> statesIn,
-        std::span<double, stateSize> derivativesOut) {
-        constexpr auto dots = StateSpaceType::make_dot();
+        std::span<double, stateSize> derivativeValuesOut) {
 
         boost::hana::for_each(
-            stateIndices, [statesIn, derivativesOut, dots](auto idx) {
-                constexpr auto outIdx = SystemType::template idx_of<typename std::remove_cvref_t<decltype(boost::hana::at(dots, idx))>::Operand>();
-                derivativesOut[outIdx] =
-                    boost::hana::at(dots, idx).template evaluate<detail::StateSpaceSystemIndex<SystemType, ControlsType>>(
+            stateIndices, [statesIn, derivativeValuesOut](auto idx) {
+                constexpr auto outIdx = SystemType::template idx_of<typename std::remove_cvref_t<decltype(boost::hana::at(derivativeFunctions, idx))>::Operand>();
+                derivativeValuesOut[outIdx] =
+                    boost::hana::at(derivativeFunctions, idx).template evaluate<detail::StateSpaceSystemIndex<SystemType, ControlsType>>(
                         statesIn);
             });
     }
