@@ -1,5 +1,7 @@
 #pragma once
 
+#include <span>
+
 #include <boost/hana/for_each.hpp>
 #include <boost/hana/size.hpp>
 #include <boost/hana/tuple.hpp>
@@ -73,6 +75,14 @@ template <typename T>
 concept PhysicalValue = requires (T t) {
     t.number();
 };
+
+template <typename T, class System>
+concept PhysicalEquation = requires(T eval, std::span<const double> arr) {
+    typename T::Unit;
+
+    eval.template evaluate<System>(arr);
+};
+
 
 template <typename SystemType>
 concept TypeIndexedList = requires(SystemType sys, typename SystemType::UnderlyingType states) {

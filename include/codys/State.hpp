@@ -11,7 +11,6 @@ namespace codys {
 template <typename Tag, typename Unit_>
 struct State {
     using Unit = Unit_;
-
     using depends_on = boost::hana::tuple<State<Tag, Unit>>;
 
     template <class SystemType, std::size_t N>

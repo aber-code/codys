@@ -44,26 +44,26 @@ TEST_CASE("Derivative has right operand as type", "[Derivative]")
   STATIC_REQUIRE(std::is_same_v<decltype(derivative)::Operand, Position>);
 }
 
-TEST_CASE("Operator Plus yields sum of operands", "[Operator]") 
+TEST_CASE("Chain of Operator Plus yields sum of operands", "[Operator-Chaining]") 
 {
-  static constexpr auto plus = Position{} + Position{};
+  static constexpr auto plus = Position{} + Position{} + Position{};
   static constexpr std::array values{1.0};
   using TestSystem = codys::System<Position>;
 
   static constexpr auto result = plus.template evaluate<TestSystem, 1>(values);
-  STATIC_REQUIRE(result == values[0] + values[0]);
+  STATIC_REQUIRE(result == values[0] + values[0] + values[0]);
 }
 
-TEST_CASE("Operator Plus has same unit as operands", "[Operator]")
+TEST_CASE("Chain of Operator Plus has same unit as operands", "[Operator-Chaining]")
 {
-  static constexpr auto plus = Position{} + Position{};
+  static constexpr auto plus = Position{} + Position{} + Position{};
   STATIC_REQUIRE(std::is_same_v<decltype(plus)::Unit, PositionUnit>);
 }
 
-TEST_CASE("Operator Plus has concatination of denepends on", "[Operator]")
+TEST_CASE("Chain of Operator Plus has concatination of denepends on", "[Operator-Chaining]")
 {
-  static constexpr auto plus = Position{} + Position{};
-  static constexpr auto ref_dependands = boost::hana::tuple<Position,Position>();
+  static constexpr auto plus = Position{} + Position{} + Position{};
+  static constexpr auto ref_dependands = boost::hana::tuple<Position,Position,Position>();
   STATIC_REQUIRE(std::is_same_v<decltype(plus)::depends_on, std::remove_cvref_t<decltype(ref_dependands)>>);
 }
 
