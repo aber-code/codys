@@ -9,27 +9,27 @@
  
 namespace codys {
 
-template <class Lhs, class Rhs, class Unit_>
+template <PhysicalType Lhs, PhysicalType Rhs> requires std::is_same_v<typename Lhs::Unit, typename Rhs::Unit>
 struct Add {
     using depends_on =
         decltype(boost::hana::concat(std::declval<typename Lhs::depends_on>(),
                                      std::declval<typename Rhs::depends_on>()));
-    using Unit = Unit_;
+    using Unit = Rhs::Unit;
 
     Lhs lhs;
     Rhs rhs;
 
-    template <class SystemType, std::size_t N> 
+    template <class SystemType, std::size_t N> requires PhysicalEquation<Lhs,SystemType>
     constexpr double evaluate(std::span<const double, N> arr) const {
         return lhs.template evaluate<SystemType>(arr) +
                rhs.template evaluate<SystemType>(arr);
     }
 };
 
-template <class Lhs, class Rhs, class Unit> 
-constexpr auto operator+([[maybe_unused]] State<Lhs, Unit> lhs,
-                         [[maybe_unused]] State<Rhs, Unit> rhs) {
-    return Add<State<Lhs, Unit>, State<Rhs, Unit>, Unit>{lhs, rhs};
+template <PhysicalType Lhs, PhysicalType Rhs> 
+constexpr auto operator+([[maybe_unused]] Lhs lhs,
+                         [[maybe_unused]] Rhs rhs) {
+    return Add<Lhs, Rhs>{lhs, rhs};
 }
 
 template <PhysicalValue Scalar, class Rhs, class UnitRhs>
