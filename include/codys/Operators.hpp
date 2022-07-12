@@ -2,6 +2,7 @@
 
 #include "Concepts.hpp"
 #include "State.hpp"
+#include "System.hpp"
 
 #include <boost/hana/concat.hpp>
 
@@ -9,7 +10,25 @@
  
 namespace codys {
 
-template <PhysicalType Lhs, PhysicalType Rhs> requires std::is_same_v<typename Lhs::Unit, typename Rhs::Unit>
+template<typename T, class States, std::size_t N>
+concept SystemExpression = requires (T t, std::span<const double, N> in)
+{
+    {t.template evaluate<States,N>(in)} -> std::same_as<double>;
+};
+
+template<class... States>
+constexpr auto to_system(boost::hana::tuple<States...>)
+{
+    return System<States...>{};
+}
+
+template<class Tuple>
+using to_system_t = decltype(to_system(std::declval<Tuple>()));
+
+template<typename T>
+concept EvaluatableOnIdentity = SystemExpression<T, to_system_t<typename T::depends_on>,to_system_t<typename T::depends_on>::size>;
+
+template <EvaluatableOnIdentity Lhs, EvaluatableOnIdentity Rhs> requires std::is_same_v<typename Lhs::Unit, typename Rhs::Unit>
 struct Add {
     using depends_on =
         decltype(boost::hana::concat(std::declval<typename Lhs::depends_on>(),
@@ -19,14 +38,14 @@ struct Add {
     Lhs lhs;
     Rhs rhs;
 
-    template <class SystemType, std::size_t N> requires PhysicalEquation<Lhs,SystemType>
+    template <class SystemType, std::size_t N>
     constexpr double evaluate(std::span<const double, N> arr) const {
         return lhs.template evaluate<SystemType>(arr) +
                rhs.template evaluate<SystemType>(arr);
     }
 };
 
-template <PhysicalType Lhs, PhysicalType Rhs> 
+template <EvaluatableOnIdentity Lhs, EvaluatableOnIdentity Rhs> 
 constexpr auto operator+([[maybe_unused]] Lhs lhs,
                          [[maybe_unused]] Rhs rhs) {
     return Add<Lhs, Rhs>{lhs, rhs};
