@@ -33,7 +33,7 @@ struct Add {
     using depends_on =
         decltype(boost::hana::concat(std::declval<typename Lhs::depends_on>(),
                                      std::declval<typename Rhs::depends_on>()));
-    using Unit = Rhs::Unit;
+    using Unit = typename Rhs::Unit;
 
     Lhs lhs;
     Rhs rhs;
