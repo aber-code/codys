@@ -1,5 +1,5 @@
 Set(Boost_INSTALL_DIR ${CONAN_BOOST_ROOT})
-find_package(Boost 1.73.0 COMPONENTS program_options REQUIRED)
+find_package(Boost 1.81.0 REQUIRED)
 find_package(mp-units)
 
 # Generic test that uses conan libs
