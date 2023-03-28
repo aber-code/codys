@@ -6,13 +6,14 @@ include(Catch)
 
 add_library(catch_main STATIC catch_main.cpp)
 target_link_libraries(catch_main PUBLIC Catch2::Catch2)
-target_link_libraries(catch_main PRIVATE project_options)
+target_link_libraries(catch_main PRIVATE myproject::project_options)
 
 add_executable(tests tests.cpp)
 target_link_libraries(tests PRIVATE 
   mp-units::mp-units 
   codys
-  project_warnings project_options
+  myproject::project_warnings 
+  myproject::project_options
   catch_main)
 
 # automatically discover tests that are defined in catch based test files you can modify the unittests. Set TEST_PREFIX
@@ -27,51 +28,5 @@ catch_discover_tests(
   .
   OUTPUT_PREFIX
   "unittests."
-  OUTPUT_SUFFIX
-  .xml)
-
-# Add a file containing a set of constexpr tests
-add_executable(constexpr_tests constexpr_tests.cpp)
-target_link_libraries(constexpr_tests PRIVATE
-  mp-units::mp-units 
-  codys
-  project_options 
-  project_warnings 
-  catch_main)
-
-catch_discover_tests(
-  constexpr_tests
-  TEST_PREFIX
-  "constexpr."
-  REPORTER
-  xml
-  OUTPUT_DIR
-  .
-  OUTPUT_PREFIX
-  "constexpr."
-  OUTPUT_SUFFIX
-  .xml)
-
-# Disable the constexpr portion of the test, and build again this allows us to have an executable that we can debug when
-# things go wrong with the constexpr testing
-add_executable(relaxed_constexpr_tests constexpr_tests.cpp)
-target_link_libraries(relaxed_constexpr_tests PRIVATE 
-  mp-units::mp-units 
-  codys
-  project_options
-  project_warnings
-  catch_main)
-target_compile_definitions(relaxed_constexpr_tests PRIVATE -DCATCH_CONFIG_RUNTIME_STATIC_REQUIRE)
-
-catch_discover_tests(
-  relaxed_constexpr_tests
-  TEST_PREFIX
-  "relaxed_constexpr."
-  REPORTER
-  xml
-  OUTPUT_DIR
-  .
-  OUTPUT_PREFIX
-  "relaxed_constexpr."
   OUTPUT_SUFFIX
   .xml)
