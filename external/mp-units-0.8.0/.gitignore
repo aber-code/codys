@@ -1,0 +1,48 @@
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# IDE-specific
+/.idea/
+/.vs/
+/.vscode/
+/CMakeSettings.json
+
+# build artifacts
+/cmake-build-*/
+/build/
+/out/
+_build/
+
+# CMake
+CMakeUserPresets.json
+
+# Conan
+*.pyc
+/test_package/build/
