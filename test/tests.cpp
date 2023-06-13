@@ -22,10 +22,10 @@ struct StateSpace
 {
   constexpr static auto make_dot()
   {
-    constexpr auto e1 = codys::dot<Velocity>(Acceleration{} + Acceleration{});
-    constexpr auto e2 = codys::dot<PositionX0>(Velocity{} * codys::cos(Rotation{}));
-    constexpr auto e3 = codys::dot<PositionX1>(Velocity{} * codys::sin(Rotation{}));
-    return boost::hana::make_tuple(e1, e2, e3);
+    constexpr auto dot_velocity = codys::dot<Velocity>(Acceleration{} + Acceleration{});
+    constexpr auto dot_pos_x0 = codys::dot<PositionX0>(Velocity{} * codys::cos(Rotation{}));
+    constexpr auto dot_pos_x1 = codys::dot<PositionX1>(Velocity{} * codys::sin(Rotation{}));
+    return boost::hana::make_tuple(dot_velocity, dot_pos_x0, dot_pos_x1);
   }
 };
 

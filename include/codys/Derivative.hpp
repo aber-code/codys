@@ -13,6 +13,7 @@ template <PhysicalType Operand_, TimeDerivativeOf<Operand_> Expression>
 struct Derivative {
     using depends_on = typename Expression::depends_on;
     using Operand = Operand_;
+    using Unit = detail::derivative_in_time_t<typename Operand::Unit>;
 
     Expression expression;
     
