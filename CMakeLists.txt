@@ -125,6 +125,8 @@ target_compile_features(project_options INTERFACE cxx_std_${CMAKE_CXX_STANDARD})
 add_library(myproject::project_options INTERFACE IMPORTED)
 add_library(myproject::project_warnings INTERFACE IMPORTED)
 
+add_subdirectory(external/mp-units-0.8.0/src)
+
 # Adding the src:
 add_subdirectory(include)
 
@@ -132,7 +134,6 @@ add_subdirectory(include)
 option(ENABLE_TESTING "Enable the tests" ${PROJECT_IS_TOP_LEVEL})
 if(ENABLE_TESTING)
   enable_testing()
-  message(AUTHOR_WARNING "Building Tests. Be sure to check out test/constexpr_tests.cpp for constexpr testing")
   add_subdirectory(test)
 endif()
 
