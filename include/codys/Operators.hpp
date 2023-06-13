@@ -5,6 +5,7 @@
 #include "System.hpp"
 
 #include <boost/hana/concat.hpp>
+#include <units/math.h>
 
 #include <span>
  
@@ -250,6 +251,48 @@ template <class Lhs, class UnitLhs, PhysicalValue Scalar>
 constexpr auto operator/([[maybe_unused]] State<Lhs, UnitLhs> lhs,
                          [[maybe_unused]] Scalar rhs) {
     return DivideScalarFromRight<State<Lhs, UnitLhs>, UnitLhs, Scalar>{lhs, rhs};
+}
+
+template<class Lhs>
+struct Sinus
+{
+  using depends_on = typename Lhs::depends_on;
+  using Unit = decltype(sin(std::declval<typename Lhs::Unit>()));
+
+  Lhs lhs;
+
+  template<class SystemType, std::size_t N>
+  constexpr double evaluate(std::span<const double, N> arr) const
+  {
+    return std::sin(lhs.template evaluate<SystemType>(arr));
+  }
+};
+
+template<EvaluatableOnIdentity Lhs>
+constexpr auto sin([[maybe_unused]] Lhs lhs)
+{
+  return Sinus<Lhs>{ lhs };
+}
+
+template<class Lhs>
+struct Cosinus
+{
+  using depends_on = typename Lhs::depends_on;
+  using Unit = decltype(cos(std::declval<typename Lhs::Unit>()));
+
+  Lhs lhs;
+
+  template<class SystemType, std::size_t N>
+  constexpr double evaluate(std::span<const double, N> arr) const
+  {
+    return std::cos(lhs.template evaluate<SystemType>(arr));
+  }
+};
+
+template<EvaluatableOnIdentity Lhs>
+constexpr auto cos([[maybe_unused]] Lhs lhs)
+{
+  return Cosinus<Lhs>{ lhs };
 }
 
 } // namespace codys
