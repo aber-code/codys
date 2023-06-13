@@ -9,34 +9,36 @@
 
 #include <codys/codys.hpp>
 
-using Position = codys::State<class Position_, units::isq::si::length<units::isq::si::metre>>;
-using Velocity = codys::State<class Vel_, units::isq::si::speed<units::isq::si::metre_per_second>>;
-using Rotation = codys::State<class Rot_, units::angle<units::radian, double>>;
-using BasicMotions = codys::System<Position, Velocity>;
+using PositionX0 = codys::State<class PositionX0_, units::isq::si::length<units::isq::si::metre>>;
+using PositionX1 = codys::State<class PositionX1_, units::isq::si::length<units::isq::si::metre>>;
+using Velocity = codys::State<class Velocity_, units::isq::si::speed<units::isq::si::metre_per_second>>;
+using BasicMotions = codys::System<PositionX0, PositionX1, Velocity>;
 
-using Acceleration = codys::State<class Acc_, units::isq::si::acceleration<units::isq::si::metre_per_second_sq>>;
-using BasicControls = codys::System<Acceleration>;
+using Acceleration = codys::State<class Acceleration_, units::isq::si::acceleration<units::isq::si::metre_per_second_sq>>;
+using Rotation = codys::State<class Rotation_, units::angle<units::radian, double>>;
+using BasicControls = codys::System<Acceleration, Rotation>;
 
 struct StateSpace
 {
   constexpr static auto make_dot()
   {
     constexpr auto e1 = codys::dot<Velocity>(Acceleration{} + Acceleration{});
-    constexpr auto e2 = codys::dot<Position>(Velocity{});
-    return boost::hana::make_tuple(e1, e2);
+    constexpr auto e2 = codys::dot<PositionX0>(Velocity{} * codys::cos(Rotation{}));
+    constexpr auto e3 = codys::dot<PositionX1>(Velocity{} * codys::sin(Rotation{}));
+    return boost::hana::make_tuple(e1, e2, e3);
   }
 };
 
 TEST_CASE("StateSpaceSystem is evaluated correctly", "[StateSpace]")
 {
-  constexpr std::array statesIn{ 1.0, 2.0, 5.0 };
+  constexpr std::array statesIn{ 1.0, 1.0, 2.0, 5.0, 0.0};
 
-  std::array out{ 0.0, 0.0 };
+  std::array out{ 0.0, 0.0, 0.0 };
 
   codys::StateSpaceSystem<BasicMotions, BasicControls, StateSpace>::evaluate(statesIn, out);
 
-  constexpr auto expectedOutPutAt0 = 2.0;
-  constexpr auto expectedOutputAt1 = 10.0;
-  REQUIRE(out[0] == Approx(expectedOutPutAt0));
-  REQUIRE(out[1] == Approx(expectedOutputAt1));
+  constexpr std::array expectedOutput{2.0, 0.0, 10.0};
+  REQUIRE(out[0] == Approx(expectedOutput[0]));
+  REQUIRE(out[1] == Approx(expectedOutput[1]));
+  REQUIRE(out[2] == Approx(expectedOutput[2]));
 }
