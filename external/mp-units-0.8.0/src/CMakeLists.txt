@@ -41,13 +41,12 @@ if(${projectPrefix}AS_SYSTEM_HEADERS)
 endif()
 
 add_subdirectory(core)
-add_subdirectory(core-fmt)
 add_subdirectory(core-io)
 add_subdirectory(systems)
 
 # project-wide wrapper
 add_library(mp-units INTERFACE)
-target_link_libraries(mp-units INTERFACE mp-units::core mp-units::core-io mp-units::core-fmt mp-units::systems)
+target_link_libraries(mp-units INTERFACE mp-units::core mp-units::core-io mp-units::systems)
 add_library(mp-units::mp-units ALIAS mp-units)
 install(TARGETS mp-units EXPORT mp-unitsTargets)
 
@@ -56,10 +55,3 @@ export(EXPORT mp-unitsTargets NAMESPACE mp-units::)
 configure_file("mp-unitsConfig.cmake" "." COPYONLY)
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(mp-unitsConfigVersion.cmake COMPATIBILITY SameMajorVersion)
-
-# installation
-install(EXPORT mp-unitsTargets DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/mp-units NAMESPACE mp-units::)
-
-install(FILES mp-unitsConfig.cmake ${CMAKE_CURRENT_BINARY_DIR}/mp-unitsConfigVersion.cmake
-        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/mp-units
-)

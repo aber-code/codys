@@ -2,7 +2,7 @@
 
 #include "Concepts.hpp"
 
-#include <boost/hana/tuple.hpp>
+#include <tuple>
 
 namespace codys {
 
@@ -12,7 +12,7 @@ template <class T, class Tuple>
 struct Index;
 
 template <class T, typename... Ts>
-struct Index<T, boost::hana::tuple<Ts...>> {
+struct Index<T, std::tuple<Ts...>> {
     static constexpr std::size_t index = []() {
         constexpr std::array<bool, sizeof...(Ts)> a{
             {std::is_same<T, Ts>::value...}};
@@ -31,9 +31,9 @@ struct Index<T, boost::hana::tuple<Ts...>> {
 
 template <PhysicalType... States>
 struct System {
-    using UnderlyingType = boost::hana::tuple<States...>;
+    using UnderlyingType = std::tuple<States...>;
 
-    constexpr static std::size_t size = static_cast<std::size_t>(decltype(boost::hana::size(std::declval<UnderlyingType>()))::value);
+    constexpr static std::size_t size = std::tuple_size<UnderlyingType>{};
 
     template <class WantedStateType> requires SystemStateFor<WantedStateType, System<States...>>
     static constexpr std::size_t idx_of() {

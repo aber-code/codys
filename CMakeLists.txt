@@ -34,8 +34,7 @@ include(${_project_options_SOURCE_DIR}/Index.cmake)
 project(
   myproject
   VERSION 0.0.1
-  DESCRIPTION ""
-  HOMEPAGE_URL "%%myurl%%"
+  DESCRIPTION "compiletime dynamical systems"
   LANGUAGES CXX C)
 
 # This variable is set by project() in CMake 3.21+
@@ -83,6 +82,9 @@ endif()
 
 include(${_project_options_SOURCE_DIR}/src/DynamicProjectOptions.cmake)
 
+include(Dependencies.cmake)
+myproject_setup_dependencies()
+
 # defaulted_project_options sets recommended defaults and provides user and developer
 # modes and full GUI support for choosing options at configure time
 
@@ -102,7 +104,7 @@ dynamic_project_options(
   PCH_HEADERS
   <vector>
   <string> # This is a list of headers to pre-compile, here are some common ones
-  ENABLE_CONAN
+  # ENABLE_CONAN
   # CONAN_OPTIONS    # Extra options to pass to conan
   # MSVC_WARNINGS    # Override the defaults for the MSVC warnings
   # CLANG_WARNINGS   # Override the defaults for the CLANG warnings

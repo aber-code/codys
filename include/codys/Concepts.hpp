@@ -1,23 +1,27 @@
 #pragma once
 
+#include <algorithm>
 #include <span>
-
-#include <boost/hana/for_each.hpp>
-#include <boost/hana/size.hpp>
-#include <boost/hana/tuple.hpp>
+#include <tuple>
 
 namespace codys {
 
 namespace detail {
 
+template<typename Tuple, typename Func, std::size_t... idxs>
+constexpr void for_each_in(std::integer_sequence<std::size_t, idxs...> indices, Tuple tup, Func func)
+{
+    (func(idxs, std::get<idxs>(tup)),...);
+}
+
 template <class T, class Tuple>
 struct TagIndex;
 
 template <class T, typename... Ts>
-struct TagIndex<T, boost::hana::tuple<Ts...>> {
+struct TagIndex<T, std::tuple<Ts...>> {
     static constexpr int index = []() {
         constexpr std::array<bool, sizeof...(Ts)> a{
-            {std::is_same<T, typename Ts::Operand>::value...}};
+            {std::is_same_v<T, typename Ts::Operand>...}};
 
         const auto it = std::find(a.begin(), a.end(), true);
         if (it == a.end()) {
@@ -32,14 +36,13 @@ struct TagIndex<T, boost::hana::tuple<Ts...>> {
 template <typename SystemType, typename StateSpaceType>
 constexpr bool all_states_have_derivatives() {
     constexpr auto states = typename SystemType::UnderlyingType{};
-    constexpr auto stateSize = decltype(boost::hana::size(states))::value;
+    constexpr std::size_t stateSize = std::tuple_size<decltype(states)>{};
     constexpr auto stateIndices = std::make_index_sequence<stateSize>{};
     
     bool ret = true;
-    boost::hana::for_each(stateIndices, [&ret](auto idx) {
+    for_each_in(stateIndices, states, [&ret](auto idx, auto state) {
         constexpr auto ind = TagIndex<
-            typename std::remove_cvref_t<decltype(boost::hana::at(states,
-                                                                  idx))>,
+            typename std::remove_cvref_t<decltype(state)>,
             std::remove_cvref_t<decltype(StateSpaceType::make_dot())>>::index;
 
         ret &= (ind >= 0) && (ind < stateSize);
@@ -52,7 +55,7 @@ template <class T, class Tuple>
 struct Contains;
 
 template <class T, typename... Ts>
-struct Contains<T, boost::hana::tuple<Ts...>> {
+struct Contains<T, std::tuple<Ts...>> {
     static constexpr bool value = []() {
         constexpr std::array<bool, sizeof...(Ts)> a{
             {std::is_same<T, Ts>::value...}};
@@ -88,7 +91,7 @@ template <typename SystemType>
 concept TypeIndexedList = requires(SystemType sys, typename SystemType::UnderlyingType states) {
     typename SystemType::UnderlyingType;
    sys.size;
-   {sys.template idx_of<std::remove_cvref_t<decltype(boost::hana::at(states,boost::hana::int_c<0>))>>()} -> std::same_as<std::size_t>;
+   {sys.template idx_of<std::remove_cvref_t<decltype(std::get<0>(states))>>()} -> std::same_as<std::size_t>;
 };
 
 template <typename T, typename SystemType>
