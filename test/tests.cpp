@@ -7,8 +7,13 @@
 #include <units/isq/si/length.h>
 #include <units/generic/angle.h>
 
-#include <codys/codys.hpp>
+#include <codys/Derivative.hpp>
+#include <codys/Operators.hpp>
+#include <codys/State.hpp>
+#include <codys/StateSpaceSystem.hpp>
+#include <codys/System.hpp>
 
+#include <cmath>
 #include <tuple>
 
 using PositionX0 = codys::State<class PositionX0_, units::isq::si::length<units::isq::si::metre>>;
@@ -40,7 +45,8 @@ TEST_CASE("StateSpaceSystem is evaluated correctly", "[StateSpaceSystem]")
   codys::StateSpaceSystem<BasicMotions, BasicControls, Motion2D>::evaluate(statesIn, out);
 
   constexpr std::array expectedOutput{2.0, 0.0, 10.0};
-  REQUIRE(std::abs(out[0] - expectedOutput[0]) < 1e-06);
-  REQUIRE(std::abs(out[1] - expectedOutput[1]) < 1e-06);
-  REQUIRE(std::abs(out[2] - expectedOutput[2]) < 1e-06);
+  constexpr auto checkTol = 1e-06;
+  REQUIRE(std::abs(out[0] - expectedOutput[0]) < checkTol);
+  REQUIRE(std::abs(out[1] - expectedOutput[1]) < checkTol);
+  REQUIRE(std::abs(out[2] - expectedOutput[2]) < checkTol);
 }
