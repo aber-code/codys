@@ -4,10 +4,10 @@
 #include "State.hpp"
 #include "System.hpp"
 
-#include <boost/hana/concat.hpp>
 #include <units/math.h>
 
 #include <span>
+#include <tuple>
  
 namespace codys {
 
@@ -18,7 +18,7 @@ concept SystemExpression = requires (T t, std::span<const double, N> in)
 };
 
 template<class... States>
-constexpr auto to_system(boost::hana::tuple<States...>)
+constexpr auto to_system(std::tuple<States...>)
 {
     return System<States...>{};
 }
@@ -32,7 +32,7 @@ concept EvaluatableOnIdentity = SystemExpression<T, to_system_t<typename T::depe
 template <EvaluatableOnIdentity Lhs, EvaluatableOnIdentity Rhs> requires std::is_same_v<typename Lhs::Unit, typename Rhs::Unit>
 struct Add {
     using depends_on =
-        decltype(boost::hana::concat(std::declval<typename Lhs::depends_on>(),
+        decltype(std::tuple_cat(std::declval<typename Lhs::depends_on>(),
                                      std::declval<typename Rhs::depends_on>()));
     using Unit = typename Rhs::Unit;
 
@@ -81,7 +81,7 @@ constexpr auto operator+([[maybe_unused]] Lhs lhs,
 template <class Lhs, class Rhs> requires std::is_same_v<typename Lhs::Unit, typename Rhs::Unit>
 struct Substract {
     using depends_on =
-        decltype(boost::hana::concat(std::declval<typename Lhs::depends_on>(),
+        decltype(std::tuple_cat(std::declval<typename Lhs::depends_on>(),
                                      std::declval<typename Rhs::depends_on>()));
     using Unit = typename Rhs::Unit;
 
@@ -144,7 +144,7 @@ constexpr auto operator-([[maybe_unused]] Lhs lhs,
 template <class Lhs, class Rhs>
 struct Multiply {
     using depends_on =
-        decltype(boost::hana::concat(std::declval<typename Lhs::depends_on>(),
+        decltype(std::tuple_cat(std::declval<typename Lhs::depends_on>(),
                                      std::declval<typename Rhs::depends_on>()));
     using Unit = decltype(std::declval<typename Lhs::Unit>() * std::declval<typename Rhs::Unit>());
 
@@ -193,7 +193,7 @@ constexpr auto operator*([[maybe_unused]] Lhs lhs,
 template <class Lhs, class Rhs>
 struct Divide {
     using depends_on =
-        decltype(boost::hana::concat(std::declval<typename Lhs::depends_on>(),
+        decltype(std::tuple_cat(std::declval<typename Lhs::depends_on>(),
                                      std::declval<typename Rhs::depends_on>()));
     using Unit = decltype(std::declval<typename Lhs::Unit>() / std::declval<typename Rhs::Unit>());
 

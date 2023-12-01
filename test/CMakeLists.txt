@@ -1,11 +1,6 @@
-find_package(Catch2 REQUIRED)
-
 include(CTest)
-include(Catch)
 
-add_library(catch_main STATIC catch_main.cpp)
-target_link_libraries(catch_main PUBLIC Catch2::Catch2)
-target_link_libraries(catch_main PRIVATE myproject::project_options)
+include(${Catch2_SOURCE_DIR}/extras/Catch.cmake)
 
 add_executable(tests tests.cpp)
 target_link_libraries(tests PRIVATE 
@@ -13,7 +8,7 @@ target_link_libraries(tests PRIVATE
   codys
   myproject::project_warnings 
   myproject::project_options
-  catch_main)
+  Catch2::Catch2WithMain)
 
 # automatically discover tests that are defined in catch based test files you can modify the unittests. Set TEST_PREFIX
 # to whatever you want, or use different for different binaries
@@ -22,7 +17,7 @@ catch_discover_tests(
   TEST_PREFIX
   "unittests."
   REPORTER
-  xml
+  XML
   OUTPUT_DIR
   .
   OUTPUT_PREFIX
@@ -37,7 +32,7 @@ target_link_libraries(
     codys
     myproject::project_warnings 
     myproject::project_options
-    catch_main)
+    Catch2::Catch2WithMain)
 
 catch_discover_tests(
   constexpr_tests

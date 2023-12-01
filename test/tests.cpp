@@ -1,4 +1,4 @@
-#include <catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 #include <array>
 
@@ -9,6 +9,8 @@
 
 #include <codys/codys.hpp>
 
+#include <tuple>
+
 using PositionX0 = codys::State<class PositionX0_, units::isq::si::length<units::isq::si::metre>>;
 using PositionX1 = codys::State<class PositionX1_, units::isq::si::length<units::isq::si::metre>>;
 using Velocity = codys::State<class Velocity_, units::isq::si::speed<units::isq::si::metre_per_second>>;
@@ -18,27 +20,27 @@ using Acceleration = codys::State<class Acceleration_, units::isq::si::accelerat
 using Rotation = codys::State<class Rotation_, units::angle<units::radian, double>>;
 using BasicControls = codys::System<Acceleration, Rotation>;
 
-struct StateSpace
+struct Motion2D
 {
   constexpr static auto make_dot()
   {
     constexpr auto dot_velocity = codys::dot<Velocity>(Acceleration{} + Acceleration{});
     constexpr auto dot_pos_x0 = codys::dot<PositionX0>(Velocity{} * codys::cos(Rotation{}));
     constexpr auto dot_pos_x1 = codys::dot<PositionX1>(Velocity{} * codys::sin(Rotation{}));
-    return boost::hana::make_tuple(dot_velocity, dot_pos_x0, dot_pos_x1);
+    return std::make_tuple(dot_velocity, dot_pos_x0, dot_pos_x1);
   }
 };
 
-TEST_CASE("StateSpaceSystem is evaluated correctly", "[StateSpace]")
+TEST_CASE("StateSpaceSystem is evaluated correctly", "[StateSpaceSystem]")
 {
   constexpr std::array statesIn{ 1.0, 1.0, 2.0, 5.0, 0.0};
 
   std::array out{ 0.0, 0.0, 0.0 };
 
-  codys::StateSpaceSystem<BasicMotions, BasicControls, StateSpace>::evaluate(statesIn, out);
+  codys::StateSpaceSystem<BasicMotions, BasicControls, Motion2D>::evaluate(statesIn, out);
 
   constexpr std::array expectedOutput{2.0, 0.0, 10.0};
-  REQUIRE(out[0] == Approx(expectedOutput[0]));
-  REQUIRE(out[1] == Approx(expectedOutput[1]));
-  REQUIRE(out[2] == Approx(expectedOutput[2]));
+  REQUIRE(std::abs(out[0] - expectedOutput[0]) < 1e-06);
+  REQUIRE(std::abs(out[1] - expectedOutput[1]) < 1e-06);
+  REQUIRE(std::abs(out[2] - expectedOutput[2]) < 1e-06);
 }
