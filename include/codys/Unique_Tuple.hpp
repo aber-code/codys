@@ -27,4 +27,10 @@ using unique_tuple_t = decltype(to_unique(std::declval<Tuple>()));
 template <typename... Ts> 
 concept is_unique = std::is_same_v<unique_tuple<Ts...>, std::tuple<Ts...>>;
 
+template <typename Lhs, typename Rhs>
+using combined_t = decltype(std::tuple_cat(std::declval<Lhs>(), std::declval<Rhs>()));
+
+template <typename Lhs, typename Rhs>
+concept are_distinct = std::is_same_v<unique_tuple_t<combined_t<Lhs,Rhs>>, combined_t<unique_tuple_t<Lhs>, unique_tuple_t<Rhs>>>;
+
 } // namespace codys
