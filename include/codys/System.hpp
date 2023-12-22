@@ -1,6 +1,7 @@
 #pragma once
 
-#include "Concepts.hpp"
+#include <codys/Concepts.hpp>
+#include <codys/Unique_Tuple.hpp>
 
 #include <tuple>
 
@@ -29,7 +30,7 @@ struct Index<T, std::tuple<Ts...>> {
 
 } // namespace detail
 
-template <PhysicalType... States>
+template <PhysicalType... States> requires is_unique<States...>
 struct System {
     using UnderlyingType = std::tuple<States...>;
 

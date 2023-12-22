@@ -1,8 +1,9 @@
 #pragma once
 
-#include "Concepts.hpp"
-#include "State.hpp"
-#include "System.hpp"
+#include <codys/Concepts.hpp>
+#include <codys/State.hpp>
+#include <codys/System.hpp>
+#include <codys/Unique_Tuple.hpp>
 
 #include <units/math.h>
 
@@ -32,8 +33,8 @@ concept EvaluatableOnIdentity = SystemExpression<T, to_system_t<typename T::depe
 template <EvaluatableOnIdentity Lhs, EvaluatableOnIdentity Rhs> requires std::is_same_v<typename Lhs::Unit, typename Rhs::Unit>
 struct Add {
     using depends_on =
-        decltype(std::tuple_cat(std::declval<typename Lhs::depends_on>(),
-                                     std::declval<typename Rhs::depends_on>()));
+        unique_tuple_t<decltype(std::tuple_cat(std::declval<typename Lhs::depends_on>(),
+                                     std::declval<typename Rhs::depends_on>()))>;
     using Unit = typename Rhs::Unit;
 
     Lhs lhs;
@@ -81,8 +82,8 @@ constexpr auto operator+([[maybe_unused]] Lhs lhs,
 template <class Lhs, class Rhs> requires std::is_same_v<typename Lhs::Unit, typename Rhs::Unit>
 struct Substract {
     using depends_on =
-        decltype(std::tuple_cat(std::declval<typename Lhs::depends_on>(),
-                                     std::declval<typename Rhs::depends_on>()));
+        unique_tuple_t<decltype(std::tuple_cat(std::declval<typename Lhs::depends_on>(),
+                                     std::declval<typename Rhs::depends_on>()))>;
     using Unit = typename Rhs::Unit;
 
     Lhs lhs;
@@ -144,8 +145,8 @@ constexpr auto operator-([[maybe_unused]] Lhs lhs,
 template <class Lhs, class Rhs>
 struct Multiply {
     using depends_on =
-        decltype(std::tuple_cat(std::declval<typename Lhs::depends_on>(),
-                                     std::declval<typename Rhs::depends_on>()));
+        unique_tuple_t<decltype(std::tuple_cat(std::declval<typename Lhs::depends_on>(),
+                                     std::declval<typename Rhs::depends_on>()))>;
     using Unit = decltype(std::declval<typename Lhs::Unit>() * std::declval<typename Rhs::Unit>());
 
     Lhs lhs;
@@ -193,8 +194,8 @@ constexpr auto operator*([[maybe_unused]] Lhs lhs,
 template <class Lhs, class Rhs>
 struct Divide {
     using depends_on =
-        decltype(std::tuple_cat(std::declval<typename Lhs::depends_on>(),
-                                     std::declval<typename Rhs::depends_on>()));
+        unique_tuple_t<decltype(std::tuple_cat(std::declval<typename Lhs::depends_on>(),
+                                     std::declval<typename Rhs::depends_on>()))>;
     using Unit = decltype(std::declval<typename Lhs::Unit>() / std::declval<typename Rhs::Unit>());
 
     Lhs lhs;

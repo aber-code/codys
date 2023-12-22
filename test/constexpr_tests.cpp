@@ -69,7 +69,7 @@ TEST_CASE("Chain of Operator Plus has same unit as operands", "[Operator-Chainin
 TEST_CASE("Chain of Operator Plus has concatination of denepends on", "[Operator-Chaining]")
 {
   static constexpr auto plus = Position{} + Position{} + Position{};
-  static constexpr auto ref_dependands = std::tuple<Position, Position, Position>();
+  static constexpr auto ref_dependands = std::tuple<Position>();
   STATIC_REQUIRE(std::is_same_v<decltype(plus)::depends_on, std::remove_cvref_t<decltype(ref_dependands)>>);
 }
 
@@ -92,7 +92,7 @@ TEST_CASE("Operator Minus has same unit as operands", "[Operator]")
 TEST_CASE("Operator Minus has concatination of denepends on", "[Operator]")
 {
   static constexpr auto minus = Position{} - Position{};
-  static constexpr auto ref_dependands = std::tuple<Position, Position>();
+  static constexpr auto ref_dependands = std::tuple<Position>();
   STATIC_REQUIRE(std::is_same_v<decltype(minus)::depends_on, std::remove_cvref_t<decltype(ref_dependands)>>);
 }
 
@@ -115,7 +115,7 @@ TEST_CASE("Operator Multiply has unit resulting from multiplying operands", "[Op
 TEST_CASE("Operator Multiply has concatination of denepends on", "[Operator]")
 {
   static constexpr auto multiply = Position{} * Position{};
-  static constexpr auto ref_dependands = std::tuple<Position, Position>();
+  static constexpr auto ref_dependands = std::tuple<Position>();
   STATIC_REQUIRE(std::is_same_v<decltype(multiply)::depends_on, std::remove_cvref_t<decltype(ref_dependands)>>);
 }
 
@@ -138,7 +138,7 @@ TEST_CASE("Operator Divide has unit resulting from dividing operands", "[Operato
 TEST_CASE("Operator Divide has concatination of denepends on", "[Operator]")
 {
   static constexpr auto divide = Position{} / Position{};
-  static constexpr auto ref_dependands = std::tuple<Position, Position>();
+  static constexpr auto ref_dependands = std::tuple<Position>();
   STATIC_REQUIRE(std::is_same_v<decltype(divide)::depends_on, std::remove_cvref_t<decltype(ref_dependands)>>);
 }
 
