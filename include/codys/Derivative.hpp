@@ -1,6 +1,7 @@
 #pragma once
 
-#include "Concepts.hpp"
+#include <codys/Concepts.hpp>
+#include <codys/Unique_Tuple.hpp>
 
 #include <units/isq/si/time.h>
 
@@ -11,7 +12,7 @@ namespace codys {
 
 template <PhysicalType Operand_, TimeDerivativeOf<Operand_> Expression> 
 struct Derivative {
-    using depends_on = typename Expression::depends_on;
+    using depends_on = unique_tuple_t<typename Expression::depends_on>;
     using Operand = Operand_;
     using Unit = detail::derivative_in_time_t<typename Operand::Unit>;
 
