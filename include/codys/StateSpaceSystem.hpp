@@ -1,6 +1,7 @@
 #pragma once
 
-#include "Concepts.hpp"
+#include <codys/Concepts.hpp>
+#include <codys/Unique_Tuple.hpp>
 
 #include <span>
 #include <utility>
@@ -30,7 +31,8 @@ struct StateSpaceSystemIndex {
 
 }// namespace detail
 
-template <TypeIndexedList SystemType, TypeIndexedList ControlsType, DerivativeSystemOf<SystemType> StateSpaceType>
+// TODO AB 2023-12-22: Move requires into some form of concept for Controls/States when feature "merge systems" is stable
+template <TypeIndexedList SystemType, TypeIndexedList ControlsType, DerivativeSystemOf<SystemType> StateSpaceType> requires are_distinct<typename SystemType::UnderlyingType, typename ControlsType::UnderlyingType>
 struct StateSpaceSystem {
     constexpr static auto stateSize = SystemType::size;
     constexpr static auto stateIndices = std::make_index_sequence<stateSize>{};
