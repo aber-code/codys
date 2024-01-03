@@ -6,8 +6,8 @@ add_executable(tests tests.cpp)
 target_link_libraries(tests PRIVATE 
   mp-units::mp-units 
   codys
-  myproject::project_warnings 
-  myproject::project_options
+  codys_warnings 
+  codys_options
   Catch2::Catch2WithMain)
 
 # automatically discover tests that are defined in catch based test files you can modify the unittests. Set TEST_PREFIX
@@ -30,8 +30,8 @@ target_link_libraries(
     constexpr_tests
     PRIVATE mp-units::mp-units 
     codys
-    myproject::project_warnings 
-    myproject::project_options
+    codys_warnings 
+    codys_options
     Catch2::Catch2WithMain)
 
 catch_discover_tests(

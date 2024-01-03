@@ -45,7 +45,7 @@ struct StateSpaceSystem {
         std::span<double, stateSize> derivativeValuesOut) {
 
         detail::for_each_in(
-            stateIndices, derivativeFunctions, [statesIn, derivativeValuesOut](auto idx, auto derivative) {
+            stateIndices, derivativeFunctions, [statesIn, derivativeValuesOut](auto /*idx*/, auto derivative) {
                 constexpr auto outIdx = SystemType::template idx_of<typename std::remove_cvref_t<decltype(derivative)>::Operand>();
                 derivativeValuesOut[outIdx] =
                     derivative.template evaluate<detail::StateSpaceSystemIndex<SystemType, ControlsType>>(

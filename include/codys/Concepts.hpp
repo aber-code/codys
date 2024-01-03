@@ -3,13 +3,14 @@
 #include <algorithm>
 #include <span>
 #include <tuple>
+#include <type_traits>
 
 namespace codys {
 
 namespace detail {
 
 template<typename Tuple, typename Func, std::size_t... idxs>
-constexpr void for_each_in(std::integer_sequence<std::size_t, idxs...> indices, Tuple tup, Func func)
+constexpr void for_each_in(std::integer_sequence<std::size_t, idxs...> /*indices*/, Tuple tup, Func func)
 {
     (func(idxs, std::get<idxs>(tup)),...);
 }
@@ -19,7 +20,7 @@ struct TagIndex;
 
 template <class T, typename... Ts>
 struct TagIndex<T, std::tuple<Ts...>> {
-    static constexpr int index = []() {
+    static constexpr auto index = []() {
         constexpr std::array<bool, sizeof...(Ts)> a{
             {std::is_same_v<T, typename Ts::Operand>...}};
 
@@ -40,7 +41,7 @@ constexpr bool all_states_have_derivatives() {
     constexpr auto stateIndices = std::make_index_sequence<stateSize>{};
     
     bool ret = true;
-    for_each_in(stateIndices, states, [&ret](auto idx, auto state) {
+    for_each_in(stateIndices, states, [&ret](auto /*idx*/, [[maybe_unused]] auto state) {
         constexpr auto ind = TagIndex<
             typename std::remove_cvref_t<decltype(state)>,
             std::remove_cvref_t<decltype(StateSpaceType::make_dot())>>::index;
