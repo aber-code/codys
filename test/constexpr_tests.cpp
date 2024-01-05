@@ -3,6 +3,7 @@
 #include <units/isq/si/speed.h>
 #include <units/isq/si/time.h>
 #include <units/isq/si/length.h>
+#include <units/isq/si/acceleration.h>
 #include <units/isq/si/area.h>
 #include <units/generic/angle.h>
 #include <units/generic/dimensionless.h>
@@ -11,6 +12,7 @@
 #include <codys/Operators.hpp>
 #include <codys/State.hpp>
 #include <codys/System.hpp>
+#include <codys/StateSpaceSystem.hpp>
 
 #include <array>
 #include <cmath>
@@ -27,6 +29,22 @@ using Velocity = codys::State<class Vel_, VelocityUnit>;
 using Rotation = codys::State<class Rot_, units::angle<units::radian, double>>;
 
 using BasicMotions = codys::System<Position, Velocity>;
+
+
+using PositionX0 = codys::State<class PositionX0_, units::isq::si::length<units::isq::si::metre>>;
+using PositionX1 = codys::State<class PositionX1_, units::isq::si::length<units::isq::si::metre>>;
+using Acceleration = codys::State<class Acceleration_, units::isq::si::acceleration<units::isq::si::metre_per_second_sq>>;
+
+struct TestSystemMotions
+{
+  constexpr static auto make_dot()
+  {
+    constexpr auto dot_velocity = codys::dot<Velocity>(Acceleration{} + Acceleration{});
+    constexpr auto dot_pos_x0 = codys::dot<PositionX0>(Velocity{} * codys::cos(Rotation{}));
+    constexpr auto dot_pos_x1 = codys::dot<PositionX1>(Velocity{} * codys::sin(Rotation{}));
+    return std::make_tuple(dot_velocity, dot_pos_x0, dot_pos_x1);
+  }
+};
 
 TEST_CASE("System return right state indices", "[System]")
 {
@@ -386,4 +404,23 @@ TEST_CASE("Operator Cosinus yields cosinus of operand", "[Operator]")
 
   static const auto result = cosinus.template evaluate<TestSystem, 1>(values);
   REQUIRE(result == std::cos(values[0]));
+}
+
+TEST_CASE("States defined by make_dot can be computed", "[TypeUtil]")
+{
+  constexpr auto states = codys::getStatesDefinedBy(TestSystemMotions::make_dot());
+  STATIC_REQUIRE(std::is_same_v<std::remove_cvref_t<decltype(states)>, std::tuple<Velocity, PositionX0, PositionX1>>);
+}
+
+
+TEST_CASE("Dependants defined by make_dot can be computed", "[TypeUtil]")
+{
+  constexpr auto states = codys::getStateDependenciesDefinedBy(TestSystemMotions::make_dot());
+  STATIC_REQUIRE(std::is_same_v<std::remove_cvref_t<decltype(states)>, std::tuple<Acceleration, Velocity, Rotation>>);
+}
+
+TEST_CASE("Controls defined by make_dot can be computed", "[TypeUtil]")
+{
+  constexpr auto states = codys::getControlsDefinedBy(TestSystemMotions::make_dot());
+  STATIC_REQUIRE(std::is_same_v<std::remove_cvref_t<decltype(states)>, std::tuple<Acceleration, Rotation>>);
 }

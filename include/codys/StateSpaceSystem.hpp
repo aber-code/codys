@@ -1,6 +1,7 @@
 #pragma once
 
 #include <codys/Concepts.hpp>
+#include <codys/Distinct_Tuple.hpp>
 #include <codys/Unique_Tuple.hpp>
 
 #include <span>
@@ -30,6 +31,37 @@ struct StateSpaceSystemIndex {
 };
 
 }// namespace detail
+
+template<typename... DerivativeEquation>
+constexpr auto getStatesDefinedBy(const std::tuple<DerivativeEquation...>& /*derivatives*/)
+{
+    return std::tuple<typename DerivativeEquation::Operand ...>{};
+}
+
+template<typename... DerivativeEquation>
+constexpr auto getStateDependenciesDefinedBy(const std::tuple<DerivativeEquation...>& /*derivatives*/)
+{
+    using depends_on =
+        unique_tuple_t<decltype(std::tuple_cat(std::declval<typename DerivativeEquation::depends_on>()...))>;
+
+    return depends_on{};
+}
+
+
+
+template<typename... DerivativeEquation>
+constexpr auto getControlsDefinedBy(const std::tuple<DerivativeEquation...>& derivatives)
+{
+    using states = std::remove_cvref_t<decltype(getStatesDefinedBy(derivatives))>;
+    using dependants = std::remove_cvref_t<decltype(getStateDependenciesDefinedBy(derivatives))>;
+    return distinct_tuple_of<dependants, states>{};
+}
+
+template<typename StateSpaceType>
+struct StateSpaceSystemTrait
+{
+    constexpr static auto derivativeFunctions = StateSpaceType::make_dot();
+};
 
 // TODO AB 2023-12-22: Move requires into some form of concept for Controls/States when feature "merge systems" is stable
 template <TypeIndexedList SystemType, TypeIndexedList ControlsType, DerivativeSystemOf<SystemType> StateSpaceType> requires are_distinct<typename SystemType::UnderlyingType, typename ControlsType::UnderlyingType>
