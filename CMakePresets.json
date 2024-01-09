@@ -31,6 +31,9 @@
             "toolset": {
                 "value": "host=x64",
                 "strategy": "external"
+            },
+            "cacheVariables": {
+                "codys_ENABLE_COVERAGE": "TRUE"
             }
         },
         {

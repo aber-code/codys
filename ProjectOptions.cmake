@@ -20,7 +20,7 @@ endmacro()
 
 macro(codys_setup_options)
   option(codys_ENABLE_HARDENING "Enable hardening" ON)
-  option(codys_ENABLE_COVERAGE "Enable coverage reporting" OFF)
+  option(codys_ENABLE_COVERAGE "Enable coverage reporting" ON)
   cmake_dependent_option(
     codys_ENABLE_GLOBAL_HARDENING
     "Attempt to push hardening options to built dependencies"
@@ -54,7 +54,7 @@ macro(codys_setup_options)
     option(codys_ENABLE_SANITIZER_THREAD "Enable thread sanitizer" OFF)
     option(codys_ENABLE_SANITIZER_MEMORY "Enable memory sanitizer" OFF)
     option(codys_ENABLE_UNITY_BUILD "Enable unity builds" OFF)
-    option(codys_ENABLE_CLANG_TIDY "Enable clang-tidy" ON)
+    option(codys_ENABLE_CLANG_TIDY "Enable clang-tidy" OFF)
     option(codys_ENABLE_CPPCHECK "Enable cpp-check analysis" OFF)
     option(codys_ENABLE_PCH "Enable precompiled headers" OFF)
     option(codys_ENABLE_CACHE "Enable ccache" OFF)

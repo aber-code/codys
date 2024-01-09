@@ -30,6 +30,12 @@ struct StateSpaceSystemIndex {
     }
 };
 
+template<typename... States>
+consteval System<States...> to_system(std::tuple<States...>)
+{
+    return {}; 
+}
+
 }// namespace detail
 
 template<typename... DerivativeEquation>
@@ -37,6 +43,9 @@ constexpr auto getStatesDefinedBy(const std::tuple<DerivativeEquation...>& /*der
 {
     return std::tuple<typename DerivativeEquation::Operand ...>{};
 }
+
+template<typename StateSpaceType>
+using system_states_t = std::remove_cvref_t<decltype(to_system(getStatesDefinedBy(StateSpaceType::make_dot())))>;
 
 template<typename... DerivativeEquation>
 constexpr auto getStateDependenciesDefinedBy(const std::tuple<DerivativeEquation...>& /*derivatives*/)
@@ -47,8 +56,6 @@ constexpr auto getStateDependenciesDefinedBy(const std::tuple<DerivativeEquation
     return depends_on{};
 }
 
-
-
 template<typename... DerivativeEquation>
 constexpr auto getControlsDefinedBy(const std::tuple<DerivativeEquation...>& derivatives)
 {
@@ -58,10 +65,7 @@ constexpr auto getControlsDefinedBy(const std::tuple<DerivativeEquation...>& der
 }
 
 template<typename StateSpaceType>
-struct StateSpaceSystemTrait
-{
-    constexpr static auto derivativeFunctions = StateSpaceType::make_dot();
-};
+using system_controls_t = std::remove_cvref_t<decltype(to_system(getControlsDefinedBy(StateSpaceType::make_dot())))>;
 
 // TODO AB 2023-12-22: Move requires into some form of concept for Controls/States when feature "merge systems" is stable
 template <TypeIndexedList SystemType, TypeIndexedList ControlsType, DerivativeSystemOf<SystemType> StateSpaceType> requires are_distinct<typename SystemType::UnderlyingType, typename ControlsType::UnderlyingType>
@@ -85,5 +89,8 @@ struct StateSpaceSystem {
             });
     }
 };
+
+template<typename StateSpaceType>
+using StateSpaceSystemOf = StateSpaceSystem<system_states_t<StateSpaceType>, system_controls_t<StateSpaceType>, StateSpaceType>;
 
 } // namespace codys
