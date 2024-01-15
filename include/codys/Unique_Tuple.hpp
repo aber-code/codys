@@ -18,11 +18,17 @@ struct unique<std::tuple<Ts...>, U, Us...>
 template <typename... Ts>
 using unique_tuple = typename unique<std::tuple<>, Ts...>::type;
 
-template <typename... Ts> 
-consteval unique_tuple<Ts...> to_unique(std::tuple<Ts...>);
+template<typename T>
+struct to_unique{};
+
+template<typename... Ts>
+struct to_unique<std::tuple<Ts...>>
+{
+    using type = unique_tuple<Ts...>;
+};
 
 template<typename Tuple>
-using unique_tuple_t = decltype(to_unique(std::declval<Tuple>()));
+using unique_tuple_t = to_unique<Tuple>::type;
 
 template <typename... Ts> 
 concept is_unique = std::is_same_v<unique_tuple<Ts...>, std::tuple<Ts...>>;
