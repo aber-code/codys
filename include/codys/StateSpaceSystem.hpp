@@ -5,6 +5,7 @@
 #include <codys/Unique_Tuple.hpp>
 
 #include <span>
+#include <type_traits>
 #include <utility>
 
 namespace codys {
@@ -43,6 +44,27 @@ constexpr auto getStatesDefinedBy(const std::tuple<DerivativeEquation...>& /*der
 {
     return std::tuple<typename DerivativeEquation::Operand ...>{};
 }
+
+template<typename T>
+concept defines_dot = requires(T t)
+{
+    t.make_dot();
+};
+
+// replace with std::tuple_like in C++23:
+template <typename Tuple>
+concept tuple_like = requires(Tuple tuple)
+{
+    std::get<0>(tuple);
+    std::declval<std::tuple_element_t<0, std::remove_cvref_t<Tuple>>>();
+    std::tuple_size_v<std::remove_cvref_t<Tuple>>;
+};
+
+template<defines_dot StateSpaceType> 
+using states_defined_by_t = std::remove_cvref_t<decltype(getStatesDefinedBy(StateSpaceType::make_dot()))>;
+
+template<tuple_like StateSpaceType> 
+using states_of_t = std::remove_cvref_t<decltype(getStatesDefinedBy(std::declval<StateSpaceType>()))>;
 
 template<typename StateSpaceType>
 using system_states_t = std::remove_cvref_t<decltype(to_system(getStatesDefinedBy(StateSpaceType::make_dot())))>;
@@ -92,5 +114,29 @@ struct StateSpaceSystem {
 
 template<typename StateSpaceType>
 using StateSpaceSystemOf = StateSpaceSystem<system_states_t<StateSpaceType>, system_controls_t<StateSpaceType>, StateSpaceType>;
+
+template<typename T, typename U>
+struct expression_of{};
+
+template<typename T, typename... Derivatives>
+struct expression_of<T, std::tuple<Derivatives...>>
+{
+    using tupleType = std::tuple<Derivatives...>;
+    using operands = states_of_t<tupleType>;
+    constexpr static auto index = detail::TagIndex<T, tupleType>::index;
+    using type = std::conditional_t<
+        detail::Contains<T,operands>::value,
+        std::tuple<
+            typename std::remove_cvref_t<
+                        decltype(std::get<index>(std::declval<tupleType>()))
+                    >::Expression
+        >,
+        std::tuple<>
+    >;
+};
+
+template<typename T, typename Derivatives>
+using expression_of_t = expression_of<T, Derivatives>::type;
+
 
 } // namespace codys

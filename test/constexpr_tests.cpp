@@ -424,3 +424,13 @@ TEST_CASE("Controls defined by make_dot can be computed", "[TypeUtil]")
   constexpr auto states = codys::getControlsDefinedBy(TestSystemMotions::make_dot());
   STATIC_REQUIRE(std::is_same_v<std::remove_cvref_t<decltype(states)>, std::tuple<Acceleration, Rotation>>);
 }
+
+TEST_CASE("Expression is determined correctly", "[TypeUtil]")
+{
+  using dot_velocity = std::remove_cvref_t<decltype(codys::dot<Velocity>(Acceleration{} + Acceleration{}))>;
+  using derivativeTypes = std::tuple<dot_velocity>;
+  STATIC_REQUIRE(std::is_same_v<codys::expression_of<Velocity, derivativeTypes>::tupleType, derivativeTypes>);
+  STATIC_REQUIRE(std::is_same_v<codys::expression_of<Velocity, derivativeTypes>::operands, std::tuple<Velocity>>);
+  STATIC_REQUIRE(codys::expression_of<Velocity, derivativeTypes>::index == 0);
+  STATIC_REQUIRE(std::is_same_v<codys::expression_of_t<Velocity, derivativeTypes>, std::tuple<dot_velocity::Expression>>);
+}

@@ -10,11 +10,12 @@
 
 namespace codys {
 
-template <PhysicalType Operand_, TimeDerivativeOf<Operand_> Expression> 
+template <PhysicalType Operand_, TimeDerivativeOf<Operand_> Expression_> 
 struct Derivative {
+    using Expression = Expression_;
     using depends_on = unique_tuple_t<typename Expression::depends_on>;
     using Operand = Operand_;
-    using Unit = detail::derivative_in_time_t<typename Operand::Unit>;
+    using Unit = detail::derivative_in_time_t<typename Operand::Unit>;  
 
     Expression expression;
     
