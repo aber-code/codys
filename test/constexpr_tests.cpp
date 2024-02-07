@@ -432,5 +432,47 @@ TEST_CASE("Expression is determined correctly", "[TypeUtil]")
   STATIC_REQUIRE(std::is_same_v<codys::expression_of<Velocity, derivativeTypes>::tupleType, derivativeTypes>);
   STATIC_REQUIRE(std::is_same_v<codys::expression_of<Velocity, derivativeTypes>::operands, std::tuple<Velocity>>);
   STATIC_REQUIRE(codys::expression_of<Velocity, derivativeTypes>::index == 0);
-  STATIC_REQUIRE(std::is_same_v<codys::expression_of_t<Velocity, derivativeTypes>, std::tuple<dot_velocity::Expression>>);
+}
+
+struct TestSystemMotionsVelOnly
+{
+  constexpr static auto make_dot()
+  {
+    constexpr auto dot_velocity = codys::dot<Velocity>(Acceleration{} + Acceleration{});
+    return std::make_tuple(dot_velocity);
+  }
+};
+
+
+struct TestSystemMotionsPosOnly
+{
+  constexpr static auto make_dot()
+  {
+    constexpr auto dot_pos_x0 = codys::dot<PositionX0>(Velocity{} * codys::cos(Rotation{}));
+    return std::make_tuple(dot_pos_x0);
+  }
+};
+
+TEST_CASE("Expressions are combined correctly", "[TypeUtil]")
+{
+  constexpr auto acc = Acceleration{};
+  constexpr auto acc2 = Acceleration{} + Acceleration{};
+  constexpr auto accCombined = codys::combineExpression(std::make_tuple(acc, acc2));
+  constexpr auto acc3 = Acceleration{} + (Acceleration{} + Acceleration{});
+  STATIC_REQUIRE(std::is_same_v< std::remove_cvref_t<decltype(accCombined)>, std::remove_cvref_t<decltype(acc3)>>);
+
+  constexpr auto accCombinedWithEmptySet = codys::combineExpression(std::tuple_cat(std::make_tuple(acc2), std::tuple<>{}));
+  STATIC_REQUIRE(std::is_same_v< std::remove_cvref_t<decltype(accCombinedWithEmptySet)>, std::remove_cvref_t<decltype(acc2)>>);
+
+  constexpr auto accCombinedOneArgument = codys::combineExpression(std::make_tuple(acc2));
+  STATIC_REQUIRE(std::is_same_v< std::remove_cvref_t<decltype(accCombinedOneArgument)>, std::remove_cvref_t<decltype(acc2)>>);
+}
+
+TEST_CASE("Systems are combined correctly", "[TypeUtil]")
+{
+  using CombinedSys = codys::combine<TestSystemMotionsVelOnly, TestSystemMotionsPosOnly>;
+  using combinedOperands = CombinedSys::combinedOperands;
+
+  STATIC_REQUIRE(std::tuple_size_v<combinedOperands> == 2);
+  [[maybe_unused]] static constexpr auto derivatives = CombinedSys::make_dot();
 }

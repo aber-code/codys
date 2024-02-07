@@ -1,10 +1,12 @@
 #pragma once
 
 #include <codys/Concepts.hpp>
+#include <codys/Derivative.hpp>
 #include <codys/Distinct_Tuple.hpp>
 #include <codys/Unique_Tuple.hpp>
 
 #include <span>
+#include <tuple>
 #include <type_traits>
 #include <utility>
 
@@ -124,19 +126,53 @@ struct expression_of<T, std::tuple<Derivatives...>>
     using tupleType = std::tuple<Derivatives...>;
     using operands = states_of_t<tupleType>;
     constexpr static auto index = detail::TagIndex<T, tupleType>::index;
-    using type = std::conditional_t<
-        detail::Contains<T,operands>::value,
-        std::tuple<
-            typename std::remove_cvref_t<
-                        decltype(std::get<index>(std::declval<tupleType>()))
-                    >::Expression
-        >,
-        std::tuple<>
-    >;
+
+    template<typename U = T> requires detail::Contains<T,operands>::value
+    constexpr static auto from(tupleType derivatives)
+    {
+        return std::make_tuple(std::get<index>(derivatives).expression);
+    }
+
+    template<typename U = T> 
+    constexpr static std::tuple<> from(tupleType)
+    {
+        return {};
+    }
 };
 
-template<typename T, typename Derivatives>
-using expression_of_t = expression_of<T, Derivatives>::type;
+template<typename T, typename... Derivatives>
+constexpr auto expression_of_from(std::tuple<Derivatives...> derivatives)
+{
+    return expression_of<T, std::tuple<Derivatives...>>::from(derivatives);
+}
 
+template<typename... Expressions>
+constexpr auto combineExpression(std::tuple<Expressions...> expr)
+{
+    return (std::get<Expressions>(expr) + ...);
+}
+
+template<typename Operand, typename... DerivativeSystem>
+constexpr auto combineExpressionFor()
+{
+    return combineExpression(std::tuple_cat(expression_of_from<Operand>(DerivativeSystem::make_dot())...  ) );
+}
+
+template<typename SystemLhs, typename SystemRhs, typename... Operands>
+constexpr auto combineExpressionsFor(std::tuple<Operands...>)
+{
+    return std::make_tuple(dot<Operands>(combineExpressionFor<Operands, SystemLhs, SystemRhs>())...);
+}
+
+template<typename SystemLhs, typename SystemRhs>
+struct combine{
+
+    using combinedOperands = unique_tuple_t< combined_t< states_defined_by_t<SystemLhs>, states_defined_by_t<SystemRhs> > >;
+    
+    constexpr static auto make_dot()
+    {
+        return combineExpressionsFor<SystemLhs, SystemRhs>(combinedOperands{});
+    }
+};
 
 } // namespace codys
