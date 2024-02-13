@@ -158,20 +158,20 @@ constexpr auto combineExpressionFor()
     return combineExpression(std::tuple_cat(expression_of_from<Operand>(DerivativeSystem::make_dot())...  ) );
 }
 
-template<typename SystemLhs, typename SystemRhs, typename... Operands>
+template<typename... System, typename... Operands>
 constexpr auto combineExpressionsFor(std::tuple<Operands...>)
 {
-    return std::make_tuple(dot<Operands>(combineExpressionFor<Operands, SystemLhs, SystemRhs>())...);
+    return std::make_tuple(dot<Operands>(combineExpressionFor<Operands, System...>())...);
 }
 
-template<typename SystemLhs, typename SystemRhs>
+template<typename... System>
 struct combine{
 
-    using combinedOperands = unique_tuple_t< combined_t< states_defined_by_t<SystemLhs>, states_defined_by_t<SystemRhs> > >;
+    using combinedOperands = unique_tuple_t< combined_t< states_defined_by_t<System>... > >;
     
     constexpr static auto make_dot()
     {
-        return combineExpressionsFor<SystemLhs, SystemRhs>(combinedOperands{});
+        return combineExpressionsFor<System...>(combinedOperands{});
     }
 };
 

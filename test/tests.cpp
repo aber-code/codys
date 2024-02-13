@@ -30,7 +30,7 @@ using namespace units::isq::si::references;
 using dacc_ds_unit = std::remove_cvref_t<decltype(std::declval<units::isq::si::acceleration<units::isq::si::metre_per_second_sq>>() / (1*s))>;
 using PropellerForce = codys::State<class PropellerForce_, dacc_ds_unit>;
 
-constexpr auto forward_water_resitance = (Velocity{}) / (1*s);
+constexpr auto forward_water_resitance = (Velocity{}) / (-1*s) / (1*s);
 
 
 struct Motion2D
@@ -54,12 +54,22 @@ struct SimplePropeller
   }
 };
 
+struct ForwardWaterResistance
+{
+  constexpr static auto make_dot()
+  {
+    constexpr auto dot_acc = codys::dot<Acceleration>(forward_water_resitance);
+    
+    return std::make_tuple(dot_acc);
+  }
+};
+
 struct Motion2DAdvanced
 {
 
   constexpr static auto make_dot()
   {
-    return codys::combine<Motion2D,SimplePropeller>::make_dot();
+    return codys::combine<Motion2D,SimplePropeller,ForwardWaterResistance>::make_dot();
   }
 };
 
@@ -91,7 +101,7 @@ TEST_CASE("StateSpaceSystemOf is evaluated correctly", "[StateSpaceSystemOf]")
   codys::StateSpaceSystemOf<Motion2DAdvanced>::evaluate(statesIn, out);
 
   // determined to Velocity, PositionX0, PositionX1, Acceleration
-  constexpr std::array expectedOutput{6.0, 2.0, 0.0, 5.0};
+  constexpr std::array expectedOutput{6.0, 2.0, 0.0, 3.0};
   constexpr auto checkTol = 1e-06;
   REQUIRE(std::abs(out[0] - expectedOutput[0]) < checkTol);
   REQUIRE(std::abs(out[1] - expectedOutput[1]) < checkTol);

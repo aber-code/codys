@@ -33,8 +33,8 @@ using unique_tuple_t = to_unique<Tuple>::type;
 template <typename... Ts> 
 concept is_unique = std::is_same_v<unique_tuple<Ts...>, std::tuple<Ts...>>;
 
-template <typename Lhs, typename Rhs>
-using combined_t = decltype(std::tuple_cat(std::declval<Lhs>(), std::declval<Rhs>()));
+template <typename... Args>
+using combined_t = decltype(std::tuple_cat(std::declval<Args>()...));
 
 template <typename Lhs, typename Rhs>
 concept are_distinct = std::is_same_v<unique_tuple_t<combined_t<Lhs,Rhs>>, combined_t<unique_tuple_t<Lhs>, unique_tuple_t<Rhs>>>;

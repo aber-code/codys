@@ -19,6 +19,8 @@
 #include <tuple>
 #include <type_traits>
 
+namespace codys_constexpr_tests {
+
 using PositionTag = class Position_;
 using PositionUnit = units::isq::si::length<units::isq::si::metre>;
 using PositionUnitSq = units::isq::si::area<units::isq::si::square_metre>;
@@ -30,10 +32,13 @@ using Rotation = codys::State<class Rot_, units::angle<units::radian, double>>;
 
 using BasicMotions = codys::System<Position, Velocity>;
 
-
 using PositionX0 = codys::State<class PositionX0_, units::isq::si::length<units::isq::si::metre>>;
 using PositionX1 = codys::State<class PositionX1_, units::isq::si::length<units::isq::si::metre>>;
 using Acceleration = codys::State<class Acceleration_, units::isq::si::acceleration<units::isq::si::metre_per_second_sq>>;
+
+using namespace units::isq::si::references;
+using dacc_ds_unit = std::remove_cvref_t<decltype(std::declval<units::isq::si::acceleration<units::isq::si::metre_per_second_sq>>() / (1*s))>;
+using PropellerForce = codys::State<class PropellerForce_, dacc_ds_unit>;
 
 struct TestSystemMotions
 {
@@ -453,6 +458,15 @@ struct TestSystemMotionsPosOnly
   }
 };
 
+struct TestSystemMotionsAccOnly
+{
+  constexpr static auto make_dot()
+  {
+    constexpr auto dot_acc = codys::dot<Acceleration>(PropellerForce{});
+    return std::make_tuple(dot_acc);
+  }
+};
+
 TEST_CASE("Expressions are combined correctly", "[TypeUtil]")
 {
   constexpr auto acc = Acceleration{};
@@ -470,9 +484,11 @@ TEST_CASE("Expressions are combined correctly", "[TypeUtil]")
 
 TEST_CASE("Systems are combined correctly", "[TypeUtil]")
 {
-  using CombinedSys = codys::combine<TestSystemMotionsVelOnly, TestSystemMotionsPosOnly>;
+  using CombinedSys = codys::combine<TestSystemMotionsVelOnly, TestSystemMotionsPosOnly, TestSystemMotionsAccOnly>;
   using combinedOperands = CombinedSys::combinedOperands;
 
-  STATIC_REQUIRE(std::tuple_size_v<combinedOperands> == 2);
+  STATIC_REQUIRE(std::tuple_size_v<combinedOperands> == 3);
   [[maybe_unused]] static constexpr auto derivatives = CombinedSys::make_dot();
 }
+
+} // namespace codys_constexpr_tests 

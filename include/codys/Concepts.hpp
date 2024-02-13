@@ -58,10 +58,10 @@ struct Contains;
 template <class T, typename... Ts>
 struct Contains<T, std::tuple<Ts...>> {
     static constexpr bool value = []() {
-        constexpr std::array<bool, sizeof...(Ts)> a{
+        constexpr std::array<bool, sizeof...(Ts)> existenceMask{
             {std::is_same<T, Ts>::value...}};
 
-        return std::find(a.begin(), a.end(), true) != a.end();
+        return std::find(existenceMask.begin(), existenceMask.end(), true) != existenceMask.end();
     }();
 };
 
