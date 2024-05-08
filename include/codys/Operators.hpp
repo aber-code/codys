@@ -30,6 +30,12 @@ using to_system_t = decltype(to_system(std::declval<Tuple>()));
 template<typename T>
 concept EvaluatableOnIdentity = SystemExpression<T, to_system_t<typename T::depends_on>,to_system_t<typename T::depends_on>::size>;
 
+template<std::size_t N>
+constexpr std::string_view toView(const std::array<char, N>& arr)
+{
+    return std::string_view(arr.begin(), arr.end());
+}
+
 template <EvaluatableOnIdentity Lhs, EvaluatableOnIdentity Rhs> requires std::is_same_v<typename Lhs::Unit, typename Rhs::Unit>
 struct Add {
     using depends_on =
@@ -41,42 +47,27 @@ struct Add {
     Rhs rhs;
 
     template <class SystemType, std::size_t N>
-    constexpr double evaluate(std::span<const double, N> arr) const {
+    [[nodiscard]] constexpr double evaluate(std::span<const double, N> arr) const {
         return lhs.template evaluate<SystemType>(arr) +
                rhs.template evaluate<SystemType>(arr);
+    }
+
+    template <class SystemType>
+    constexpr static auto format_in(Add add) {
+        constexpr auto fmt_string_lhs = add.lhs.template format_in<SystemType>(add.lhs);
+        constexpr auto fmt_string_rhs = add.rhs.template format_in<SystemType>(add.rhs);
+        constexpr auto compiled = FMT_COMPILE("{} + {}");
+        constexpr auto size = fmt::formatted_size(compiled, toView(fmt_string_lhs), toView(fmt_string_rhs));
+        auto result = std::array<char, size>();
+        fmt::format_to(result.data(), compiled , toView(fmt_string_lhs), toView(fmt_string_rhs));
+        return result;
     }
 };
 
 template <EvaluatableOnIdentity Lhs, EvaluatableOnIdentity Rhs> 
-constexpr auto operator+([[maybe_unused]] Lhs lhs,
-                         [[maybe_unused]] Rhs rhs) {
+constexpr auto operator+(Lhs lhs,
+                         Rhs rhs) {
     return Add<Lhs, Rhs>{lhs, rhs};
-}
-
-template <PhysicalValue Scalar, class Rhs>
-struct AddScalar {
-    using depends_on = typename Rhs::depends_on;
-    using Unit = decltype(std::declval<Scalar>() + std::declval<typename Rhs::Unit>());
-
-    Scalar lhs;
-    Rhs rhs;
-
-    template <class SystemType, std::size_t N> 
-    constexpr double evaluate(std::span<const double, N> arr) const {
-        return lhs.number() + rhs.template evaluate<SystemType>(arr);
-    }
-};
-
-template <PhysicalValue Scalar, EvaluatableOnIdentity Rhs> 
-constexpr auto operator+([[maybe_unused]] Scalar lhs,
-                         [[maybe_unused]] Rhs rhs) {
-    return AddScalar<Scalar, Rhs>{lhs, rhs};
-}
-
-template <PhysicalValue Scalar, EvaluatableOnIdentity Lhs> 
-constexpr auto operator+([[maybe_unused]] Lhs lhs,
-                         [[maybe_unused]] Scalar rhs) {
-    return AddScalar<Scalar, Lhs>{rhs, lhs};
 }
 
 template <class Lhs, class Rhs> requires std::is_same_v<typename Lhs::Unit, typename Rhs::Unit>
@@ -94,52 +85,23 @@ struct Substract {
         return lhs.template evaluate<SystemType>(arr) -
                rhs.template evaluate<SystemType>(arr);
     }
+
+    template <class SystemType>
+    constexpr auto format_in(Substract sub) const {
+        constexpr auto fmt_string_lhs = sub.lhs.template format_in<SystemType>(sub.lhs);
+        constexpr auto fmt_string_rhs = sub.rhs.template format_in<SystemType>(sub.rhs);
+        constexpr auto compiled = FMT_COMPILE("{} - {}");
+        constexpr auto size = fmt::formatted_size(compiled, toView(fmt_string_lhs), toView(fmt_string_rhs));
+        auto result = std::array<char, size>();
+        fmt::format_to(result.data(), compiled, toView(fmt_string_lhs), toView(fmt_string_rhs));
+        return result;
+    }
 };
 
 template <EvaluatableOnIdentity Lhs, EvaluatableOnIdentity Rhs> 
 constexpr auto operator-([[maybe_unused]] Lhs lhs,
                          [[maybe_unused]] Rhs rhs) {
     return Substract<Lhs, Rhs>{lhs, rhs};
-}
-
-template <PhysicalValue Scalar, class Rhs>
-struct SubstractScalarFromLeft {
-    using depends_on = typename Rhs::depends_on;
-    using Unit = decltype(std::declval<Scalar>() - std::declval<typename Rhs::Unit>());
-
-    Scalar lhs;
-    Rhs rhs;
-
-    template <class SystemType, std::size_t N> 
-    constexpr double evaluate(std::span<const double, N> arr) const {
-        return lhs.number() - rhs.template evaluate<SystemType>(arr);
-    }
-};
-
-template <class Lhs, PhysicalValue Scalar>
-struct SubstractScalarFromRight {
-    using depends_on = typename Lhs::depends_on;
-    using Unit = decltype(std::declval<typename Lhs::Unit>() - std::declval<Scalar>());
-
-    Lhs lhs;
-    Scalar rhs;
-
-    template <class SystemType, std::size_t N> 
-    constexpr double evaluate(std::span<const double, N> arr) const {
-        return lhs.template evaluate<SystemType>(arr) - rhs.number();
-    }
-};
-
-template <PhysicalValue Scalar, EvaluatableOnIdentity Rhs> 
-constexpr auto operator-([[maybe_unused]] Scalar lhs,
-                         [[maybe_unused]] Rhs rhs) {
-    return SubstractScalarFromLeft<Scalar, Rhs>{lhs, rhs};
-}
-
-template <EvaluatableOnIdentity Lhs, PhysicalValue Scalar> 
-constexpr auto operator-([[maybe_unused]] Lhs lhs,
-                         [[maybe_unused]] Scalar rhs) {
-    return SubstractScalarFromRight<Lhs, Scalar>{lhs, rhs};
 }
 
 template <class Lhs, class Rhs>
@@ -157,38 +119,23 @@ struct Multiply {
         return lhs.template evaluate<SystemType>(arr) *
                rhs.template evaluate<SystemType>(arr);
     }
+
+    template <class SystemType>
+    constexpr auto format_in(Multiply mult) const {
+        constexpr auto fmt_string_lhs = mult.lhs.template format_in<SystemType>(mult.lhs);
+        constexpr auto fmt_string_rhs = mult.rhs.template format_in<SystemType>(mult.rhs);
+        constexpr auto compiled = FMT_COMPILE("{} * {}");
+        constexpr auto size = fmt::formatted_size(compiled, toView(fmt_string_lhs), toView(fmt_string_rhs));
+        auto result = std::array<char, size>();
+        fmt::format_to(result.data(), compiled, toView(fmt_string_lhs), toView(fmt_string_rhs));
+        return result;
+    }
 };
 
 template <EvaluatableOnIdentity Lhs, EvaluatableOnIdentity Rhs> 
 constexpr auto operator*([[maybe_unused]] Lhs lhs,
                          [[maybe_unused]] Rhs rhs) {
     return Multiply<Lhs, Rhs>{lhs, rhs};
-}
-
-template <PhysicalValue Scalar, class Rhs>
-struct MultiplyScalar {
-    using depends_on = typename Rhs::depends_on;
-    using Unit = decltype(std::declval<Scalar>() * std::declval<typename Rhs::Unit>());
-
-    Scalar lhs;
-    Rhs rhs;
-
-    template <class SystemType, std::size_t N> 
-    constexpr double evaluate(std::span<const double, N> arr) const {
-        return lhs.number() * rhs.template evaluate<SystemType>(arr);
-    }
-};
-
-template <PhysicalValue Scalar, EvaluatableOnIdentity Rhs> 
-constexpr auto operator*([[maybe_unused]] Scalar lhs,
-                         [[maybe_unused]] Rhs rhs) {
-    return MultiplyScalar<Scalar, Rhs>{lhs, rhs};
-}
-
-template <PhysicalValue Scalar, EvaluatableOnIdentity Lhs> 
-constexpr auto operator*([[maybe_unused]] Lhs lhs,
-                         [[maybe_unused]] Scalar rhs) {
-    return MultiplyScalar<Scalar, Lhs>{rhs, lhs};
 }
 
 template <class Lhs, class Rhs>
@@ -206,52 +153,23 @@ struct Divide {
         return lhs.template evaluate<SystemType>(arr) /
                rhs.template evaluate<SystemType>(arr);
     }
+
+    template <class SystemType>
+    constexpr auto format_in(Divide div) const {
+        constexpr auto fmt_string_lhs = div.lhs.template format_in<SystemType>(div.lhs);
+        constexpr auto fmt_string_rhs = div.rhs.template format_in<SystemType>(div.rhs);
+        constexpr auto compiled = FMT_COMPILE("\\frac({})({})");
+        constexpr auto size = fmt::formatted_size(compiled, toView(fmt_string_lhs), toView(fmt_string_rhs));
+        auto result = std::array<char, size>();
+        fmt::format_to(result.data(), compiled, toView(fmt_string_lhs), toView(fmt_string_rhs));
+        return result;
+    }
 };
 
 template <EvaluatableOnIdentity Lhs, EvaluatableOnIdentity Rhs> 
 constexpr auto operator/([[maybe_unused]] Lhs lhs,
                          [[maybe_unused]] Rhs rhs) {
     return Divide<Lhs, Rhs>{lhs, rhs};
-}
-
-template <PhysicalValue Scalar, class Rhs>
-struct DivideScalarFromLeft {
-    using depends_on = typename Rhs::depends_on;
-    using Unit = decltype(std::declval<Scalar>() / std::declval<typename Rhs::Unit>());
-
-    Scalar lhs;
-    Rhs rhs;
-
-    template <class SystemType, std::size_t N> 
-    constexpr double evaluate(std::span<const double, N> arr) const {
-        return lhs.number() / rhs.template evaluate<SystemType>(arr);
-    }
-};
-
-template <class Lhs, PhysicalValue Scalar>
-struct DivideScalarFromRight {
-    using depends_on = typename Lhs::depends_on;
-    using Unit = decltype(std::declval<typename Lhs::Unit>() / std::declval<Scalar>());
-
-    Lhs lhs;
-    Scalar rhs;
-
-    template <class SystemType, std::size_t N> 
-    constexpr double evaluate(std::span<const double, N> arr) const {
-        return lhs.template evaluate<SystemType>(arr) / rhs.number();
-    }
-};
-
-template <PhysicalValue Scalar, EvaluatableOnIdentity Rhs> 
-constexpr auto operator/([[maybe_unused]] Scalar lhs,
-                         [[maybe_unused]] Rhs rhs) {
-    return DivideScalarFromLeft<Scalar, Rhs>{lhs, rhs};
-}
-
-template <EvaluatableOnIdentity Lhs, PhysicalValue Scalar> 
-constexpr auto operator/([[maybe_unused]] Lhs lhs,
-                         [[maybe_unused]] Scalar rhs) {
-    return DivideScalarFromRight<Lhs, Scalar>{lhs, rhs};
 }
 
 template<class Lhs>
@@ -267,6 +185,16 @@ struct Sinus
   {
     return std::sin(lhs.template evaluate<SystemType>(arr));
   }
+
+  template <class SystemType>
+    constexpr auto format_in(Sinus sinus) const {
+        constexpr auto fmt_string_lhs = sinus.lhs.template format_in<SystemType>(sinus.lhs);
+        constexpr auto compiled = FMT_COMPILE("\\sin({})");
+        constexpr auto size = fmt::formatted_size(compiled, toView(fmt_string_lhs));
+        auto result = std::array<char, size>();
+        fmt::format_to(result.data(), compiled, toView(fmt_string_lhs));
+        return result;
+    }
 };
 
 template<EvaluatableOnIdentity Lhs>
@@ -288,6 +216,16 @@ struct Cosinus
   {
     return std::cos(lhs.template evaluate<SystemType>(arr));
   }
+
+    template <class SystemType>
+    constexpr auto format_in(Cosinus cosinus) const {
+        constexpr auto fmt_string_lhs = cosinus.lhs.template format_in<SystemType>(cosinus.lhs);
+        constexpr auto compiled = FMT_COMPILE("\\cos({})");
+        constexpr auto size = fmt::formatted_size(compiled, toView(fmt_string_lhs));
+        auto result = std::array<char, size>();
+        fmt::format_to(result.data(), compiled, toView(fmt_string_lhs));
+        return result;
+    }
 };
 
 template<EvaluatableOnIdentity Lhs>

@@ -17,12 +17,12 @@
 #include <tuple>
 #include <type_traits>
 
-using PositionX0 = codys::State<class PositionX0_, units::isq::si::length<units::isq::si::metre>>;
-using PositionX1 = codys::State<class PositionX1_, units::isq::si::length<units::isq::si::metre>>;
-using Velocity = codys::State<class Velocity_, units::isq::si::speed<units::isq::si::metre_per_second>>;
+using PositionX0 = codys::State<class PositionX0_, units::isq::si::length<units::isq::si::metre>, "x_0">;
+using PositionX1 = codys::State<class PositionX1_, units::isq::si::length<units::isq::si::metre>, "x_1">;
+using Velocity = codys::State<class Velocity_, units::isq::si::speed<units::isq::si::metre_per_second> , "v">;
 using BasicMotions = codys::System<PositionX0, PositionX1, Velocity>;
 
-using Acceleration = codys::State<class Acceleration_, units::isq::si::acceleration<units::isq::si::metre_per_second_sq>>;
+using Acceleration = codys::State<class Acceleration_, units::isq::si::acceleration<units::isq::si::metre_per_second_sq>, "a">;
 using Rotation = codys::State<class Rotation_, units::angle<units::radian, double>>;
 using BasicControls = codys::System<Acceleration, Rotation>;
 
@@ -30,7 +30,8 @@ using namespace units::isq::si::references;
 using dacc_ds_unit = std::remove_cvref_t<decltype(std::declval<units::isq::si::acceleration<units::isq::si::metre_per_second_sq>>() / (1*s))>;
 using PropellerForce = codys::State<class PropellerForce_, dacc_ds_unit>;
 
-constexpr auto forward_water_resitance = (Velocity{}) / (-1*s) / (1*s);
+using per_second_sq_unit = std::remove_cvref_t<decltype(1 / (1*s) / (1*s))>;
+constexpr auto forward_water_resitance = (Velocity{}) * codys::ScalarValue<std::ratio<-1>, per_second_sq_unit >{};
 
 
 struct Motion2D
@@ -107,4 +108,24 @@ TEST_CASE("StateSpaceSystemOf is evaluated correctly", "[StateSpaceSystemOf]")
   REQUIRE(std::abs(out[1] - expectedOutput[1]) < checkTol);
   REQUIRE(std::abs(out[2] - expectedOutput[2]) < checkTol);
   REQUIRE(std::abs(out[3] - expectedOutput[3]) < checkTol);
+}
+
+struct SimpleSystem
+{
+    constexpr static auto make_dot()
+    {
+        constexpr auto dot_acc = codys::dot<Velocity>(Acceleration{});
+        constexpr auto dot_pos = codys::dot<PositionX0>(Velocity{});
+    
+        return std::make_tuple(dot_acc, dot_pos);
+    }
+};
+
+TEST_CASE("Formatted String contains State Symbols", "[SystemFormat]")
+{
+  using Sys = codys::StateSpaceSystemOf<SimpleSystem>;
+  const auto formatStr = Sys::format();
+  REQUIRE(formatStr.find("v(t)") != formatStr.size());
+  REQUIRE(formatStr.find("a(t)") != formatStr.size());
+  REQUIRE(formatStr.find("x_0(t)") != formatStr.size());
 }

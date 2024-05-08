@@ -2,7 +2,7 @@ include(CTest)
 
 include(${Catch2_SOURCE_DIR}/extras/Catch.cmake)
 
-add_executable(tests tests.cpp)
+add_executable(tests tests.cpp validation.cpp)
 target_link_libraries(tests PRIVATE 
   mp-units::mp-units 
   codys

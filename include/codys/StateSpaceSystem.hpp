@@ -5,6 +5,8 @@
 #include <codys/Distinct_Tuple.hpp>
 #include <codys/Unique_Tuple.hpp>
 
+#include <array>
+#include <algorithm>
 #include <span>
 #include <tuple>
 #include <type_traits>
@@ -16,7 +18,9 @@ namespace detail {
 
 template <TypeIndexedList SystemType, TypeIndexedList ControlsType>
 struct StateSpaceSystemIndex {
-    constexpr static std::size_t stateSize = std::tuple_size<typename SystemType::UnderlyingType>{};
+    constexpr static auto stateSize = std::tuple_size<typename SystemType::UnderlyingType>{};
+    constexpr static auto controlSize = std::tuple_size<typename ControlsType::UnderlyingType>{};
+    constexpr static auto size = stateSize + controlSize;
 
     using UnderlyingType = decltype(std::tuple_cat(
         std::declval<typename SystemType::UnderlyingType>(),
@@ -37,6 +41,24 @@ template<typename... States>
 consteval System<States...> to_system(std::tuple<States...>)
 {
     return {}; 
+}
+
+template<std::size_t N>
+constexpr std::string_view toView(const std::array<char, N>& arr)
+{
+    return std::string_view(arr.begin(), arr.end());
+}
+
+// creadits to https://stackoverflow.com/a/42774523/7172556
+template <typename Type, std::size_t... sizes>
+constexpr auto concatenate(const std::array<Type, sizes>&... arrays)
+{
+    std::array<Type, (sizes + ...)> result;
+    std::size_t index{};
+
+    ((std::copy_n(arrays.begin(), sizes, result.begin() + index), index += sizes), ...);
+
+    return result;
 }
 
 }// namespace detail
@@ -105,12 +127,25 @@ struct StateSpaceSystem {
         std::span<double, stateSize> derivativeValuesOut) {
 
         detail::for_each_in(
-            stateIndices, derivativeFunctions, [statesIn, derivativeValuesOut](auto /*idx*/, auto derivative) {
-                constexpr auto outIdx = SystemType::template idx_of<typename std::remove_cvref_t<decltype(derivative)>::Operand>();
+            stateIndices, derivativeFunctions, [statesIn, derivativeValuesOut]<typename T0>(auto /*idx*/, T0 derivative) {
+                constexpr auto outIdx = SystemType::template idx_of<typename std::remove_cvref_t<T0>::Operand>();
                 derivativeValuesOut[outIdx] =
                     derivative.template evaluate<detail::StateSpaceSystemIndex<SystemType, ControlsType>>(
                         statesIn);
             });
+    }
+
+    static std::string format()
+    {
+        constexpr auto states = std::tuple_cat( typename SystemType::UnderlyingType{}, typename ControlsType::UnderlyingType{}, derivativeFunctions);
+        return std::apply([](auto... quantities)
+        {
+            constexpr static auto fmt_string = std::apply([](auto... derivs)
+            {
+                return detail::concatenate((derivs.template format_in<detail::StateSpaceSystemIndex<SystemType, ControlsType>>(derivs))...);
+            }, derivativeFunctions);
+            return fmt::format(toView(fmt_string), quantities...);
+        }, states);
     }
 };
 

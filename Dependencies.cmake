@@ -16,5 +16,9 @@ function(codys_setup_dependencies)
   cpmaddpackage("gh:gsl-lite/gsl-lite@0.41.0")
   endif()
 
+  if(NOT TARGET fmtlib::fmtlib)
+    cpmaddpackage("gh:fmtlib/fmt#10.2.1")
+  endif()
+
 
 endfunction()
