@@ -16,6 +16,7 @@
 #include <cmath>
 #include <tuple>
 #include <type_traits>
+#include <string>
 
 using PositionX0 = codys::State<class PositionX0_, units::isq::si::length<units::isq::si::metre>, "x_0">;
 using PositionX1 = codys::State<class PositionX1_, units::isq::si::length<units::isq::si::metre>, "x_1">;
@@ -114,7 +115,7 @@ struct SimpleSystem
 {
     constexpr static auto make_dot()
     {
-        constexpr auto dot_acc = codys::dot<Velocity>(Acceleration{});
+        constexpr auto dot_acc = codys::dot<Velocity>(Acceleration{} + Acceleration{});
         constexpr auto dot_pos = codys::dot<PositionX0>(Velocity{});
     
         return std::make_tuple(dot_acc, dot_pos);
@@ -125,7 +126,16 @@ TEST_CASE("Formatted String contains State Symbols", "[SystemFormat]")
 {
   using Sys = codys::StateSpaceSystemOf<SimpleSystem>;
   const auto formatStr = Sys::format();
-  REQUIRE(formatStr.find("v(t)") != formatStr.size());
-  REQUIRE(formatStr.find("a(t)") != formatStr.size());
-  REQUIRE(formatStr.find("x_0(t)") != formatStr.size());
+  REQUIRE(formatStr.find("v(t)") != std::string::npos);
+  REQUIRE(formatStr.find("a(t)") != std::string::npos);
+  REQUIRE(formatStr.find("x_0(t)") != std::string::npos);
+}
+
+TEST_CASE("Formatted Value String contains State Symbols", "[SystemFormat]")
+{
+  using Sys = codys::StateSpaceSystemOf<SimpleSystem>;
+  constexpr std::array states{1.0, 2.0, 3.0};
+  const auto formatStr = Sys::format_values(states);
+    using namespace std::literals::string_literals;
+  REQUIRE(formatStr == "6 = 3 + 3;\n1 = 1;\n"s);
 }

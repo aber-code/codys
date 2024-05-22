@@ -61,6 +61,16 @@ constexpr auto concatenate(const std::array<Type, sizes>&... arrays)
     return result;
 }
 
+template<std::size_t N, std::size_t... Idx>
+constexpr auto span_to_tuple_helper(const std::span<const double, N> values, std::index_sequence<Idx...>) {
+    return std::make_tuple(values[Idx]...);
+}
+
+template<std::size_t N>
+constexpr auto span_to_tuple(const std::span<const double, N> values) {
+    return span_to_tuple_helper(values, std::make_index_sequence<N>{});
+}
+
 }// namespace detail
 
 template<typename... DerivativeEquation>
@@ -133,6 +143,25 @@ struct StateSpaceSystem {
                     derivative.template evaluate<detail::StateSpaceSystemIndex<SystemType, ControlsType>>(
                         statesIn);
             });
+    }
+
+    static std::string format_values(std::span<const double, stateSize + controlSize> statesIn)
+    {
+        std::array<double, stateSize> derivativeValuesOut{};
+        std::ranges::fill(derivativeValuesOut, 0.0);
+        evaluate(statesIn, derivativeValuesOut);
+        auto states2 = std::tuple_cat(detail::span_to_tuple(statesIn), detail::span_to_tuple(std::span<const double, stateSize>(derivativeValuesOut)));
+
+
+        //auto states = std::tuple_cat( typename SystemType::UnderlyingType{}, typename ControlsType::UnderlyingType{}, derivativeFunctions);
+        return std::apply([](auto... quantities)
+        {
+            constexpr static auto fmt_string = std::apply([](auto... derivs)
+            {
+                return detail::concatenate((derivs.template format_in<detail::StateSpaceSystemIndex<SystemType, ControlsType>>(derivs))...);
+            }, derivativeFunctions);
+            return fmt::format(toView(fmt_string), quantities...);
+        }, states2);
     }
 
     static std::string format()

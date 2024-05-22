@@ -87,7 +87,7 @@ struct Substract {
     }
 
     template <class SystemType>
-    constexpr auto format_in(Substract sub) const {
+    constexpr static auto format_in(Substract sub) {
         constexpr auto fmt_string_lhs = sub.lhs.template format_in<SystemType>(sub.lhs);
         constexpr auto fmt_string_rhs = sub.rhs.template format_in<SystemType>(sub.rhs);
         constexpr auto compiled = FMT_COMPILE("{} - {}");
@@ -121,7 +121,7 @@ struct Multiply {
     }
 
     template <class SystemType>
-    constexpr auto format_in(Multiply mult) const {
+    constexpr static auto format_in(Multiply mult) {
         constexpr auto fmt_string_lhs = mult.lhs.template format_in<SystemType>(mult.lhs);
         constexpr auto fmt_string_rhs = mult.rhs.template format_in<SystemType>(mult.rhs);
         constexpr auto compiled = FMT_COMPILE("{} * {}");
@@ -155,7 +155,7 @@ struct Divide {
     }
 
     template <class SystemType>
-    constexpr auto format_in(Divide div) const {
+    constexpr static auto format_in(Divide div) {
         constexpr auto fmt_string_lhs = div.lhs.template format_in<SystemType>(div.lhs);
         constexpr auto fmt_string_rhs = div.rhs.template format_in<SystemType>(div.rhs);
         constexpr auto compiled = FMT_COMPILE("\\frac({})({})");
@@ -187,7 +187,7 @@ struct Sinus
   }
 
   template <class SystemType>
-    constexpr auto format_in(Sinus sinus) const {
+    constexpr static auto format_in(Sinus sinus) {
         constexpr auto fmt_string_lhs = sinus.lhs.template format_in<SystemType>(sinus.lhs);
         constexpr auto compiled = FMT_COMPILE("\\sin({})");
         constexpr auto size = fmt::formatted_size(compiled, toView(fmt_string_lhs));
@@ -218,7 +218,7 @@ struct Cosinus
   }
 
     template <class SystemType>
-    constexpr auto format_in(Cosinus cosinus) const {
+    constexpr static auto format_in(Cosinus cosinus) {
         constexpr auto fmt_string_lhs = cosinus.lhs.template format_in<SystemType>(cosinus.lhs);
         constexpr auto compiled = FMT_COMPILE("\\cos({})");
         constexpr auto size = fmt::formatted_size(compiled, toView(fmt_string_lhs));
