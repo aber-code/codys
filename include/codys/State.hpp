@@ -45,7 +45,7 @@ struct State {
     }
 
     template <class SystemType>
-    constexpr static auto format_in(State /*state*/) {
+    constexpr static auto format_in() {
         constexpr auto index = SystemType::template idx_of<State>();
         constexpr auto compiled = FMT_COMPILE("{{{}}}");
         constexpr auto size = fmt::formatted_size(compiled, index);
@@ -69,7 +69,7 @@ struct ScalarValue
     }
 
     template <class SystemType>
-    constexpr static auto format_in(ScalarValue /*value*/) {
+    constexpr static auto format_in() {
         constexpr auto compiled = FMT_COMPILE("{:.3}");
         constexpr auto size = fmt::formatted_size(compiled, value);
         auto result = std::array<char, size>();

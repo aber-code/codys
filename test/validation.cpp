@@ -81,12 +81,12 @@ struct Motion2DAdvanced
 
 TEST_CASE("RealSystem is evaluated correctly", "[RealSystem]")
 {
-  using Sys = codys::StateSpaceSystemOf<Motion2DAdvanced>;
-  [[maybe_unused]] Sys sus{};
+    using Sys = codys::StateSpaceSystemOf<Motion2DAdvanced>;
 
-  [[maybe_unused]] constexpr static std::array statesIn{  0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+    constexpr std::array statesIn{  0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 
-  [[maybe_unused]] std::array out{ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
+    std::array out{ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
 
-  Sys::evaluate(statesIn, out);
+    Sys::evaluate(statesIn, out);
+    [[maybe_unused]] const auto formatStr = Sys::format_values(statesIn);
 }

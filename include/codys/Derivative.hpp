@@ -27,25 +27,20 @@ struct Derivative
     using Operand = Operand_;
     using Unit = detail::derivative_in_time_t<typename Operand::Unit>;
 
-    Expression expression;
-
     template <class SystemType, std::size_t N>
-    constexpr double evaluate(std::span<const double, N> arr) const
+    [[nodiscard]] static constexpr double evaluate(std::span<const double, N> arr)
     {
-        return expression.template evaluate<SystemType>(arr);
+        return Expression::template evaluate<SystemType>(arr);
     }
 
     template <class SystemType>
-    constexpr static auto format_in(Derivative deriv)
+    constexpr static auto format_in()
     {
         constexpr auto index = SystemType::template idx_of<Operand>() +
                                SystemType::size;
-        constexpr auto fmt_string_rhs = deriv.expression.template format_in<
-            SystemType>(deriv.expression);
+        constexpr auto fmt_string_rhs = Expression::template format_in<SystemType>();
         constexpr auto compiled = FMT_COMPILE("{{{}}} = {};\n");
-        constexpr auto size = fmt::formatted_size(
-            compiled, index, toView2(fmt_string_rhs)
-            );
+        constexpr auto size = fmt::formatted_size(compiled, index, toView2(fmt_string_rhs));
         auto result = std::array<char, size>();
         fmt::format_to(result.data(), compiled, index, toView2(fmt_string_rhs));
         return result;
@@ -53,9 +48,9 @@ struct Derivative
 };
 
 template <PhysicalType StateName, class Expression>
-constexpr auto dot([[maybe_unused]] Expression expression)
+constexpr auto dot(Expression /*expression*/)
 {
-    return Derivative<StateName, Expression>{expression};
+    return Derivative<StateName, Expression>{};
 }
 
 } // namespace codys

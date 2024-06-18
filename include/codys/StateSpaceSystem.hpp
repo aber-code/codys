@@ -196,11 +196,7 @@ struct StateSpaceSystem
                               constexpr static auto fmt_string = std::apply(
                                   [](auto... derivs) {
                                       return detail::concatenate(
-                                          (derivs.template format_in<
-                                              detail::StateSpaceSystemIndex<
-                                                  SystemType, ControlsType>>(
-                                              derivs
-                                              ))...
+                                          (derivs.template format_in<detail::StateSpaceSystemIndex<SystemType, ControlsType>>())...
                                           );
                                   }, derivativeFunctions
                                   );
@@ -223,9 +219,7 @@ struct StateSpaceSystem
                                       return detail::concatenate(
                                           (derivs.template format_in<
                                               detail::StateSpaceSystemIndex<
-                                                  SystemType, ControlsType>>(
-                                              derivs
-                                              ))...
+                                                  SystemType, ControlsType>>())...
                                           );
                                   }, derivativeFunctions
                                   );
@@ -257,7 +251,7 @@ struct expression_of<T, std::tuple<Derivatives...>>
     template <typename U = T> requires detail::Contains<T, operands>::value
     constexpr static auto from(tupleType derivatives)
     {
-        return std::make_tuple(std::get<index>(derivatives).expression);
+        return std::tuple<typename std::remove_cvref_t<decltype(std::get<index>(derivatives))>::Expression>{};
     }
 
     template <typename U = T>
@@ -300,7 +294,6 @@ constexpr auto combineExpressionsFor(std::tuple<Operands...>)
 template <typename... System>
 struct combine
 {
-
     using combinedOperands = to_unique_tuple_t<tuple_cat_t<states_defined_by_t<
         System>...>>;
 
