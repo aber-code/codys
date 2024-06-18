@@ -246,7 +246,7 @@ struct expression_of<T, std::tuple<Derivatives...>>
 {
     using tupleType = std::tuple<Derivatives...>;
     using operands = states_of_t<tupleType>;
-    constexpr static auto index = detail::TagIndex<T, tupleType>::index;
+    constexpr static auto index = get_idx<T, tupleType>();
 
     template <typename U = T> requires detail::Contains<T, operands>::value
     constexpr static auto from(tupleType derivatives)

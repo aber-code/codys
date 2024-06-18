@@ -1,5 +1,7 @@
 #pragma once
 
+#include <codys/tuple_like.hpp>
+
 #include <algorithm>
 #include <span>
 #include <tuple>
@@ -69,6 +71,13 @@ template<class Unit>
 using derivative_in_time_t = decltype(std::declval<Unit>() / (units::isq::si::time<units::isq::si::second>{}));
 
 } // namespace detail
+
+
+template<class T, tuple_like Tuple>
+static constexpr auto get_idx()
+{
+    return detail::TagIndex<T, Tuple>::index;
+}
 
 template <typename T>
 concept PhysicalType = requires {
