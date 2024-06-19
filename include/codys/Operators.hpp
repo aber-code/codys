@@ -33,10 +33,7 @@ template <EvaluatableOnIdentity Lhs, EvaluatableOnIdentity Rhs> requires
 struct Add
 {
     using depends_on =
-    to_unique_tuple_t<decltype(std::tuple_cat(
-        std::declval<typename Lhs::depends_on>(),
-        std::declval<typename Rhs::depends_on>()
-        ))>;
+    to_unique_tuple_t<tuple_cat_t<typename Lhs::depends_on, typename Rhs::depends_on>>;
     using Unit = typename Rhs::Unit;
 
     template <class SystemType, std::size_t N>
@@ -75,10 +72,7 @@ template <class Lhs, class Rhs> requires std::is_same_v<
 struct Substract
 {
     using depends_on =
-    to_unique_tuple_t<decltype(std::tuple_cat(
-        std::declval<typename Lhs::depends_on>(),
-        std::declval<typename Rhs::depends_on>()
-        ))>;
+    to_unique_tuple_t<tuple_cat_t<typename Lhs::depends_on, typename Rhs::depends_on>>;
     using Unit = typename Rhs::Unit;
 
     template <class SystemType, std::size_t N>
@@ -112,10 +106,7 @@ template <class Lhs, class Rhs>
 struct Multiply
 {
     using depends_on =
-    to_unique_tuple_t<decltype(std::tuple_cat(
-        std::declval<typename Lhs::depends_on>(),
-        std::declval<typename Rhs::depends_on>()
-        ))>;
+    to_unique_tuple_t<tuple_cat_t<typename Lhs::depends_on, typename Rhs::depends_on>>;
     using Unit = decltype(std::declval<typename Lhs::Unit>() * std::declval<
                               typename Rhs::Unit>());
 
@@ -154,10 +145,7 @@ template <class Lhs, class Rhs>
 struct Divide
 {
     using depends_on =
-    to_unique_tuple_t<decltype(std::tuple_cat(
-        std::declval<typename Lhs::depends_on>(),
-        std::declval<typename Rhs::depends_on>()
-        ))>;
+    to_unique_tuple_t<tuple_cat_t<typename Lhs::depends_on, typename Rhs::depends_on>>;
     using Unit = decltype(std::declval<typename Lhs::Unit>() / std::declval<
                               typename Rhs::Unit>());
 

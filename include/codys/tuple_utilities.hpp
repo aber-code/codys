@@ -117,7 +117,7 @@ using unique_tuple = typename detail::unique_tuple_helper<std::tuple<>, Ts...>::
 template<tuple_like Tuple>
 using to_unique_tuple_t = typename detail::to_unique_tuple_helper<Tuple>::type;
 
-template <tuple_like... Args>
+template <typename... Args>
 using tuple_cat_t = decltype(std::tuple_cat(std::declval<Args>()...));
 
 
