@@ -36,8 +36,8 @@ struct Derivative
     template <class SystemType>
     constexpr static auto format_in()
     {
-        constexpr auto index = SystemType::template idx_of<Operand>() +
-                               SystemType::size;
+        constexpr auto index = get_idx<Operand, SystemType>() +
+                               std::tuple_size_v<SystemType>;
         constexpr auto fmt_string_rhs = Expression::template format_in<SystemType>();
         constexpr auto compiled = FMT_COMPILE("{{{}}} = {};\n");
         constexpr auto size = fmt::formatted_size(compiled, index, toView2(fmt_string_rhs));

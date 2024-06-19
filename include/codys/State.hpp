@@ -2,6 +2,8 @@
 
 #include "Concepts.hpp"
 
+#include <codys/System.hpp>
+
 #include <fmt/format.h>
 #include <fmt/std.h>
 #include <fmt/compile.h>
@@ -41,12 +43,12 @@ struct State {
 
     template <class SystemType, std::size_t N>
     constexpr static double evaluate(std::span<const double, N> arr) {
-        return arr[SystemType::template idx_of<State>()];
+        return arr[get_idx<State, SystemType>()];
     }
 
     template <class SystemType>
     constexpr static auto format_in() {
-        constexpr auto index = SystemType::template idx_of<State>();
+        constexpr auto index = get_idx<State, SystemType>();
         constexpr auto compiled = FMT_COMPILE("{{{}}}");
         constexpr auto size = fmt::formatted_size(compiled, index);
         auto result = std::array<char, size>();

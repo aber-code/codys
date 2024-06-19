@@ -29,7 +29,7 @@ using Dimensionless = units::dimensionless<units::one>;
 using PositionX0 = codys::State<class PositionX0_, units::isq::si::length<units::isq::si::metre>, "x_0">;
 using PositionX1 = codys::State<class PositionX1_, units::isq::si::length<units::isq::si::metre>, "x_1">;
 using Velocity2 = codys::State<class Velocity2_, units::isq::si::speed<units::isq::si::metre_per_second>, "v">;
-using BasicMotions = codys::System<PositionX0, PositionX1, Velocity2>;
+using BasicMotions = std::tuple<PositionX0, PositionX1, Velocity2>;
 
 using Acceleration = codys::State<class Acceleration_, units::isq::si::acceleration<units::isq::si::metre_per_second_sq>, "a">;
 using Rotation = codys::State<class Rotation_, units::angle<units::radian, double>>;

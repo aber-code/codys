@@ -19,41 +19,6 @@ namespace codys
 namespace detail
 {
 
-template <TypeIndexedList SystemType, TypeIndexedList ControlsType>
-struct StateSpaceSystemIndex
-{
-    constexpr static auto stateSize = std::tuple_size<typename
-        SystemType::UnderlyingType>{};
-    constexpr static auto controlSize = std::tuple_size<typename
-        ControlsType::UnderlyingType>{};
-    constexpr static auto size = stateSize + controlSize;
-
-    using UnderlyingType = decltype(std::tuple_cat(
-        std::declval<typename SystemType::UnderlyingType>(),
-        std::declval<typename ControlsType::UnderlyingType>()
-        ));
-
-    template <class WantedStateType> requires SystemStateFor<
-        WantedStateType, SystemType>
-    static constexpr std::size_t idx_of()
-    {
-        return SystemType::template idx_of<WantedStateType>();
-    }
-
-    template <class WantedControlType> requires SystemStateFor<
-        WantedControlType, ControlsType>
-    static constexpr std::size_t idx_of()
-    {
-        return ControlsType::template idx_of<WantedControlType>() + stateSize;
-    }
-};
-
-template <typename... States>
-consteval System<States...> to_system(std::tuple<States...>)
-{
-    return {};
-}
-
 template <std::size_t N>
 constexpr std::string_view toView(const std::array<char, N>& arr)
 {
@@ -88,6 +53,18 @@ constexpr auto span_to_tuple(const std::span<const double, N> values)
 
 } // namespace detail
 
+template<typename System, typename T>
+concept has_idx_of = requires(System)
+{
+    System::template idx_of<T>();
+};
+
+template<class T, typename System> requires has_idx_of<System, T>
+static constexpr auto get_idx()
+{
+    return System::template idx_of<T>();
+}
+
 template <typename... DerivativeEquation>
 constexpr auto getStatesDefinedBy(
     const std::tuple<DerivativeEquation...>& /*derivatives*/)
@@ -112,9 +89,9 @@ using states_of_t = std::remove_cvref_t<decltype(getStatesDefinedBy(
     ))>;
 
 template <typename StateSpaceType>
-using system_states_t = std::remove_cvref_t<decltype(to_system(
+using system_states_t = std::remove_cvref_t<decltype(
     getStatesDefinedBy(StateSpaceType::make_dot())
-    ))>;
+)>;
 
 template <typename... DerivativeEquation>
 constexpr auto getStateDependenciesDefinedBy(
@@ -140,22 +117,21 @@ constexpr auto getControlsDefinedBy(
 }
 
 template <typename StateSpaceType>
-using system_controls_t = std::remove_cvref_t<decltype(to_system(
+using system_controls_t = std::remove_cvref_t<decltype(
     getControlsDefinedBy(StateSpaceType::make_dot())
-    ))>;
+    )>;
 
 // TODO AB 2023-12-22: Move requires into some form of concept for Controls/States when feature "merge systems" is stable
-template <TypeIndexedList SystemType, TypeIndexedList ControlsType,
-    DerivativeSystemOf<SystemType> StateSpaceType> requires are_distinct<
-    typename SystemType::UnderlyingType, typename ControlsType::UnderlyingType>
+template <TypeIndexedList SystemType, TypeIndexedList ControlsType, DerivativeSystemOf<SystemType> StateSpaceType> requires are_distinct<SystemType, ControlsType>
 struct StateSpaceSystem
 {
-    constexpr static auto stateSize = SystemType::size;
+    using AllStates =decltype(std::tuple_cat(std::declval<SystemType>(),std::declval<ControlsType>()));
+    constexpr static auto stateSize = std::tuple_size_v<SystemType>;
     constexpr static auto stateIndices = std::make_index_sequence<stateSize>{};
     constexpr static auto derivativeFunctions = StateSpaceType::make_dot();
     constexpr static std::size_t derivativeFunctionsSize = std::tuple_size<
         decltype(derivativeFunctions)>{};
-    constexpr static auto controlSize = ControlsType::size;
+    constexpr static auto controlSize = std::tuple_size_v<ControlsType>;
 
     constexpr static void evaluate(
         std::span<const double, stateSize + controlSize> statesIn,
@@ -166,11 +142,10 @@ struct StateSpaceSystem
             stateIndices, derivativeFunctions,
             [statesIn, derivativeValuesOut]<typename T0>(
             auto /*idx*/, T0 derivative) {
-                constexpr auto outIdx = SystemType::template idx_of<typename
-                    std::remove_cvref_t<T0>::Operand>();
+                constexpr auto outIdx = get_idx<typename
+                    std::remove_cvref_t<T0>::Operand, SystemType>();
                 derivativeValuesOut[outIdx] =
-                    derivative.template evaluate<detail::StateSpaceSystemIndex<
-                        SystemType, ControlsType>>(
+                    derivative.template evaluate<AllStates>(
                         statesIn
                         );
             }
@@ -196,7 +171,7 @@ struct StateSpaceSystem
                               constexpr static auto fmt_string = std::apply(
                                   [](auto... derivs) {
                                       return detail::concatenate(
-                                          (derivs.template format_in<detail::StateSpaceSystemIndex<SystemType, ControlsType>>())...
+                                          (derivs.template format_in<AllStates>())...
                                           );
                                   }, derivativeFunctions
                                   );
@@ -210,16 +185,13 @@ struct StateSpaceSystem
     static std::string format()
     {
         constexpr auto states = std::tuple_cat(
-            typename SystemType::UnderlyingType{},
-            typename ControlsType::UnderlyingType{}, derivativeFunctions
+            AllStates{}, derivativeFunctions
             );
         return std::apply([](auto... quantities) {
                               constexpr static auto fmt_string = std::apply(
                                   [](auto... derivs) {
                                       return detail::concatenate(
-                                          (derivs.template format_in<
-                                              detail::StateSpaceSystemIndex<
-                                                  SystemType, ControlsType>>())...
+                                          (derivs.template format_in<AllStates>())...
                                           );
                                   }, derivativeFunctions
                                   );
@@ -246,7 +218,7 @@ struct expression_of<T, std::tuple<Derivatives...>>
 {
     using tupleType = std::tuple<Derivatives...>;
     using operands = states_of_t<tupleType>;
-    constexpr static auto index = get_idx<T, tupleType>();
+    constexpr static auto index = get_operator_idx<T, tupleType>();
 
     template <typename U = T> requires detail::Contains<T, operands>::value
     constexpr static auto from(tupleType derivatives)

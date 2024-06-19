@@ -35,7 +35,7 @@ using VelocityUnit = units::isq::si::speed<units::isq::si::metre_per_second>;
 using Velocity = codys::State<class Vel_, VelocityUnit, "V">;
 using Rotation = codys::State<class Rot_, units::angle<units::radian, double>>;
 
-using BasicMotions = codys::System<Position, Velocity>;
+using BasicMotions = std::tuple<Position, Velocity>;
 
 using PositionX0 = codys::State<class PositionX0_, units::isq::si::length<units::isq::si::metre>>;
 using PositionX1 = codys::State<class PositionX1_, units::isq::si::length<units::isq::si::metre>>;
@@ -58,8 +58,8 @@ struct TestSystemMotions
 
 TEST_CASE("System return right state indices", "[System]")
 {
-  STATIC_REQUIRE(BasicMotions::idx_of<Position>() == 0);
-  STATIC_REQUIRE(BasicMotions::idx_of<Velocity>() == 1);
+  STATIC_REQUIRE(codys::get_idx<Position,BasicMotions>() == 0);
+  STATIC_REQUIRE(codys::get_idx<Velocity,BasicMotions>() == 1);
 }
 
 TEST_CASE("State gives self as depends_on", "[State]")
@@ -82,9 +82,9 @@ TEST_CASE("Chain of Operator Plus yields sum of operands", "[Operator-Chaining]"
 {
   static constexpr auto plus = Position{} + Position{} + Position{};
   static constexpr std::array values{ 1.0 };
-  using TestSystem = codys::System<Position>;
+  using TestSystem = std::tuple<Position>;
 
-  static constexpr auto result = plus.template evaluate<TestSystem, 1>(values);
+  static constexpr auto result = plus.evaluate<TestSystem, 1>(values);
   STATIC_REQUIRE(result == values[0] + values[0] + values[0]);
 }
 
@@ -105,9 +105,9 @@ TEST_CASE("Operator Minus yields substraction of operands", "[Operator]")
 {
   static constexpr auto minus = Position{} - Position{};
   static constexpr std::array values{ 1.0 };
-  using TestSystem = codys::System<Position>;
+  using TestSystem = std::tuple<Position>;
 
-  static constexpr auto result = minus.template evaluate<TestSystem, 1>(values);
+  static constexpr auto result = minus.evaluate<TestSystem, 1>(values);
   STATIC_REQUIRE(result == values[0] - values[0]);
 }
 
@@ -128,9 +128,9 @@ TEST_CASE("Operator Multiply yields multiplication of operands", "[Operator]")
 {
   static constexpr auto multiply = Position{} * Position{};
   static constexpr std::array values{ 2.0 };
-  using TestSystem = codys::System<Position>;
+  using TestSystem = std::tuple<Position>;
 
-  static constexpr auto result = multiply.template evaluate<TestSystem, 1>(values);
+  static constexpr auto result = multiply.evaluate<TestSystem, 1>(values);
   STATIC_REQUIRE(result == values[0] * values[0]);
 }
 
@@ -151,9 +151,9 @@ TEST_CASE("Operator Divide yields division of operands", "[Operator]")
 {
   static constexpr auto divide = Position{} / Position{};
   static constexpr std::array values{ 2.0 };
-  using TestSystem = codys::System<Position>;
+  using TestSystem = std::tuple<Position>;
 
-  static constexpr auto result = divide.template evaluate<TestSystem, 1>(values);
+  static constexpr auto result = divide.evaluate<TestSystem, 1>(values);
   STATIC_REQUIRE(result == values[0] / values[0]);
 }
 
@@ -176,9 +176,9 @@ TEST_CASE("Operator Add to Scalar yields sum of operands", "[Operator]")
   static constexpr auto state = Position{};
   static constexpr auto scalar_sum = displacement + state;
   static constexpr std::array values{ 2.0 };
-  using TestSystem = codys::System<Position>;
+  using TestSystem = std::tuple<Position>;
 
-  static constexpr auto result = scalar_sum.template evaluate<TestSystem, 1>(values);
+  static constexpr auto result = scalar_sum.evaluate<TestSystem, 1>(values);
   STATIC_REQUIRE(result == displacement.value + values[0]);
 }
 
@@ -189,10 +189,10 @@ TEST_CASE("Operator Add to Scalar is commutative", "[Operator]")
   static constexpr auto scalar_sum1 = displacement + state;
   static constexpr auto scalar_sum2 = state + displacement;
   static constexpr std::array values{ 2.0 };
-  using TestSystem = codys::System<Position>;
+  using TestSystem = std::tuple<Position>;
 
-  static constexpr auto result1 = scalar_sum1.template evaluate<TestSystem, 1>(values);
-  static constexpr auto result2 = scalar_sum2.template evaluate<TestSystem, 1>(values);
+  static constexpr auto result1 = scalar_sum1.evaluate<TestSystem, 1>(values);
+  static constexpr auto result2 = scalar_sum2.evaluate<TestSystem, 1>(values);
   STATIC_REQUIRE(result1 == result2);
 }
 
@@ -218,9 +218,9 @@ TEST_CASE("Operator Minus with Scalar yields substraction of operands", "[Operat
   static constexpr auto state = Position{};
   static constexpr auto scalar_substraction = displacement - state;
   static constexpr std::array values{ 2.0 };
-  using TestSystem = codys::System<Position>;
+  using TestSystem = std::tuple<Position>;
 
-  static constexpr auto result = scalar_substraction.template evaluate<TestSystem, 1>(values);
+  static constexpr auto result = scalar_substraction.evaluate<TestSystem, 1>(values);
   STATIC_REQUIRE(result == displacement.value - values[0]);
 }
 
@@ -231,10 +231,10 @@ TEST_CASE("Operator Minus with Scalar is commutative", "[Operator]")
   static constexpr auto scalar_substraction1 = displacement - state;
   static constexpr auto scalar_substraction2 = state - displacement;
   static constexpr std::array values{ 2.0 };
-  using TestSystem = codys::System<Position>;
+  using TestSystem = std::tuple<Position>;
 
-  static constexpr auto result1 = scalar_substraction1.template evaluate<TestSystem, 1>(values);
-  static constexpr auto result2 = scalar_substraction2.template evaluate<TestSystem, 1>(values);
+  static constexpr auto result1 = scalar_substraction1.evaluate<TestSystem, 1>(values);
+  static constexpr auto result2 = scalar_substraction2.evaluate<TestSystem, 1>(values);
   STATIC_REQUIRE(result1 == -result2);
 }
 
@@ -260,9 +260,9 @@ TEST_CASE("Operator Multiply With Scalar yields multiplication of operands", "[O
   static constexpr auto state = Velocity{};
   static constexpr auto scalar_multiply = time * state;
   static constexpr std::array values{ 2.0 };
-  using TestSystem = codys::System<Velocity>;
+  using TestSystem = std::tuple<Velocity>;
 
-  static constexpr auto result = scalar_multiply.template evaluate<TestSystem, 1>(values);
+  static constexpr auto result = scalar_multiply.evaluate<TestSystem, 1>(values);
   STATIC_REQUIRE(result == time.value * values[0]);
 }
 
@@ -273,10 +273,10 @@ TEST_CASE("Operator Multiply With Scalar is commutative", "[Operator]")
   static constexpr auto scalar_multiply1 = time * state;
   static constexpr auto scalar_multiply2 = state * time;
   static constexpr std::array values{ 2.0 };
-  using TestSystem = codys::System<Velocity>;
+  using TestSystem = std::tuple<Velocity>;
 
-  static constexpr auto result1 = scalar_multiply1.template evaluate<TestSystem, 1>(values);
-  static constexpr auto result2 = scalar_multiply2.template evaluate<TestSystem, 1>(values);
+  static constexpr auto result1 = scalar_multiply1.evaluate<TestSystem, 1>(values);
+  static constexpr auto result2 = scalar_multiply2.evaluate<TestSystem, 1>(values);
   STATIC_REQUIRE(result1 == result2);
 }
 
@@ -302,9 +302,9 @@ TEST_CASE("Operator Divide by Scalar yields division of operands", "[Operator]")
   static constexpr auto state = Position{};
   static constexpr auto scalar_division = state / time;
   static constexpr std::array values{ 2.0 };
-  using TestSystem = codys::System<Position>;
+  using TestSystem = std::tuple<Position>;
 
-  static constexpr auto result = scalar_division.template evaluate<TestSystem, 1>(values);
+  static constexpr auto result = scalar_division.evaluate<TestSystem, 1>(values);
   STATIC_REQUIRE(result == values[0] / time.value);
 }
 
@@ -330,9 +330,9 @@ TEST_CASE("Operator Divide Scalar by State yields division of operands", "[Opera
   static constexpr auto state = Position{};
   static constexpr auto scalar_division = ref_distance / state;
   static constexpr std::array values{ 2.0 };
-  using TestSystem = codys::System<Position>;
+  using TestSystem = std::tuple<Position>;
 
-  static constexpr auto result = scalar_division.template evaluate<TestSystem, 1>(values);
+  static constexpr auto result = scalar_division.evaluate<TestSystem, 1>(values);
   STATIC_REQUIRE(result == ref_distance.value / values[0]);
 }
 
@@ -365,9 +365,9 @@ TEST_CASE("Operator Sinus yields sinus of operand", "[Operator]")
   static constexpr auto state = Rotation{};
   static constexpr auto sinus = sin(state);
   static constexpr std::array values{ 3.0 };
-  using TestSystem = codys::System<Rotation>;
+  using TestSystem = std::tuple<Rotation>;
 
-  static const auto result = sinus.template evaluate<TestSystem, 1>(values);
+  static const auto result = sinus.evaluate<TestSystem, 1>(values);
   REQUIRE(result == std::sin(values[0]));
 }
 
@@ -384,9 +384,9 @@ TEST_CASE("Operator Cosinus yields cosinus of operand", "[Operator]")
   static constexpr auto state = Rotation{};
   static constexpr auto cosinus = cos(state);
   static constexpr std::array values{ 3.0 };
-  using TestSystem = codys::System<Rotation>;
+  using TestSystem = std::tuple<Rotation>;
 
-  static const auto result = cosinus.template evaluate<TestSystem, 1>(values);
+  static const auto result = cosinus.evaluate<TestSystem, 1>(values);
   REQUIRE(result == std::cos(values[0]));
 }
 

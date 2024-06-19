@@ -1,5 +1,7 @@
 #pragma once
 
+#include <tuple>
+
 namespace codys {
 
 // replace with std::tuple_like in C++23:

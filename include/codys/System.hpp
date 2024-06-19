@@ -30,16 +30,10 @@ struct Index<T, std::tuple<Ts...>> {
 
 } // namespace detail
 
-template <PhysicalType... States> requires is_unique<States...>
-struct System {
-    using UnderlyingType = std::tuple<States...>;
-
-    constexpr static std::size_t size = std::tuple_size<UnderlyingType>{};
-
-    template <class WantedStateType> requires SystemStateFor<WantedStateType, System<States...>>
-    static constexpr std::size_t idx_of() {
-        return detail::Index<WantedStateType, UnderlyingType>::index;
-    }
-};
+template<class T, tuple_like Tuple>
+static constexpr auto get_idx()
+{
+    return detail::Index<T, Tuple>::index;
+}
 
 } // namespace codys

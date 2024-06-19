@@ -19,19 +19,9 @@ concept SystemExpression = requires(T t, std::span<const double, N> in)
     { t.template evaluate<States, N>(in) } -> std::same_as<double>;
 };
 
-template <class... States>
-constexpr auto to_system(std::tuple<States...>)
-{
-    return System<States...>{};
-}
-
-template <class Tuple>
-using to_system_t = decltype(to_system(std::declval<Tuple>()));
-
 template <typename T>
 concept EvaluatableOnIdentity = SystemExpression<
-    T, to_system_t<typename T::depends_on>, to_system_t<typename
-        T::depends_on>::size>;
+    T, typename T::depends_on, std::tuple_size_v<typename T::depends_on>>;
 
 template <std::size_t N>
 constexpr std::string_view toView(const std::array<char, N>& arr)

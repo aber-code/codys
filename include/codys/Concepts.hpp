@@ -1,5 +1,7 @@
 #pragma once
 
+#include "System.hpp"
+
 #include <codys/tuple_like.hpp>
 
 #include <algorithm>
@@ -38,8 +40,8 @@ struct TagIndex<T, std::tuple<Ts...>> {
 
 template <typename SystemType, typename StateSpaceType>
 constexpr bool all_states_have_derivatives() {
-    constexpr auto states = typename SystemType::UnderlyingType{};
-    constexpr std::size_t stateSize = std::tuple_size<decltype(states)>{};
+    constexpr auto states = SystemType{};
+    constexpr std::size_t stateSize = std::tuple_size_v<SystemType>;
     constexpr auto stateIndices = std::make_index_sequence<stateSize>{};
     
     bool ret = true;
@@ -74,7 +76,7 @@ using derivative_in_time_t = decltype(std::declval<Unit>() / (units::isq::si::ti
 
 
 template<class T, tuple_like Tuple>
-static constexpr auto get_idx()
+static constexpr auto get_operator_idx()
 {
     return detail::TagIndex<T, Tuple>::index;
 }
@@ -85,10 +87,8 @@ concept PhysicalType = requires {
 };
 
 template <typename SystemType>
-concept TypeIndexedList = requires(SystemType sys, typename SystemType::UnderlyingType states) {
-    typename SystemType::UnderlyingType;
-   sys.size;
-   {sys.template idx_of<std::remove_cvref_t<decltype(std::get<0>(states))>>()} -> std::same_as<std::size_t>;
+concept TypeIndexedList = requires(SystemType sys) {
+   {get_idx<std::remove_cvref_t<decltype(std::get<0>(sys))>, SystemType>()} -> std::same_as<std::size_t>;
 };
 
 template <typename T, typename SystemType>
