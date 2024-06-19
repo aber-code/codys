@@ -12,15 +12,11 @@
 namespace codys
 {
 
-template <typename T, class States, std::size_t N>
-concept SystemExpression = requires(T t, std::span<const double, N> in)
+template <typename Expression, class States = typename Expression::depends_on, std::size_t N = std::tuple_size_v<typename Expression::depends_on>>
+concept SystemExpression = requires(Expression expr, std::span<const double, N> in)
 {
-    { t.template evaluate<States, N>(in) } -> std::same_as<double>;
+    { expr.template evaluate<States, N>(in) } -> std::same_as<double>;
 };
-
-template <typename T>
-concept EvaluatableOnIdentity = SystemExpression<
-    T, typename T::depends_on, std::tuple_size_v<typename T::depends_on>>;
 
 template <std::size_t N>
 constexpr std::string_view toView(const std::array<char, N>& arr)
@@ -28,7 +24,7 @@ constexpr std::string_view toView(const std::array<char, N>& arr)
     return std::string_view(arr.begin(), arr.end());
 }
 
-template <EvaluatableOnIdentity Lhs, EvaluatableOnIdentity Rhs> requires
+template <SystemExpression Lhs, SystemExpression Rhs> requires
     std::is_same_v<typename Lhs::Unit, typename Rhs::Unit>
 struct Add
 {
@@ -60,7 +56,7 @@ struct Add
     }
 };
 
-template <EvaluatableOnIdentity Lhs, EvaluatableOnIdentity Rhs>
+template <SystemExpression Lhs, SystemExpression Rhs>
 constexpr auto operator+(Lhs /*lhs*/,
                          Rhs /*rhs*/)
 {
@@ -95,7 +91,7 @@ struct Substract
     }
 };
 
-template <EvaluatableOnIdentity Lhs, EvaluatableOnIdentity Rhs>
+template <SystemExpression Lhs, SystemExpression Rhs>
 constexpr auto operator-(Lhs /*lhs*/,
                          Rhs /*rhs*/)
 {
@@ -134,7 +130,7 @@ struct Multiply
     }
 };
 
-template <EvaluatableOnIdentity Lhs, EvaluatableOnIdentity Rhs>
+template <SystemExpression Lhs, SystemExpression Rhs>
 constexpr auto operator*(Lhs /*lhs*/,
                          Rhs /*rhs*/)
 {
@@ -173,7 +169,7 @@ struct Divide
     }
 };
 
-template <EvaluatableOnIdentity Lhs, EvaluatableOnIdentity Rhs>
+template <SystemExpression Lhs, SystemExpression Rhs>
 constexpr auto operator/(Lhs /*lhs*/,
                          Rhs /*rhs*/)
 {
@@ -206,7 +202,7 @@ struct Sinus
     }
 };
 
-template <EvaluatableOnIdentity Lhs>
+template <SystemExpression Lhs>
 constexpr auto sin(Lhs /*lhs*/)
 {
     return Sinus<Lhs>{};
@@ -238,7 +234,7 @@ struct Cosinus
     }
 };
 
-template <EvaluatableOnIdentity Lhs>
+template <SystemExpression Lhs>
 constexpr auto cos(Lhs /*lhs*/)
 {
     return Cosinus<Lhs>{};
