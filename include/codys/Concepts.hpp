@@ -1,8 +1,6 @@
 #pragma once
 
-#include "System.hpp"
-
-#include <codys/tuple_like.hpp>
+#include <codys/tuple_utilities.hpp>
 
 #include <algorithm>
 #include <span>

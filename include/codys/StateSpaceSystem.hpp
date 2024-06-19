@@ -2,9 +2,7 @@
 
 #include <codys/Concepts.hpp>
 #include <codys/Derivative.hpp>
-#include <codys/Distinct_Tuple.hpp>
-#include <codys/Unique_Tuple.hpp>
-#include <codys/tuple_like.hpp>
+#include <codys/tuple_utilities.hpp>
 
 #include <array>
 #include <algorithm>
@@ -125,7 +123,7 @@ using system_controls_t = std::remove_cvref_t<decltype(
 template <TypeIndexedList SystemType, TypeIndexedList ControlsType, DerivativeSystemOf<SystemType> StateSpaceType> requires are_distinct<SystemType, ControlsType>
 struct StateSpaceSystem
 {
-    using AllStates =decltype(std::tuple_cat(std::declval<SystemType>(),std::declval<ControlsType>()));
+    using AllStates = tuple_cat_t<SystemType, ControlsType>;
     constexpr static auto stateSize = std::tuple_size_v<SystemType>;
     constexpr static auto stateIndices = std::make_index_sequence<stateSize>{};
     constexpr static auto derivativeFunctions = StateSpaceType::make_dot();
