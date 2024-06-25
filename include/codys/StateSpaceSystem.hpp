@@ -125,7 +125,6 @@ struct StateSpaceSystem
 {
     using AllStates = tuple_cat_t<SystemType, ControlsType>;
     constexpr static auto stateSize = std::tuple_size_v<SystemType>;
-    constexpr static auto stateIndices = std::make_index_sequence<stateSize>{};
     constexpr static auto derivativeFunctions = StateSpaceType::make_dot();
     constexpr static std::size_t derivativeFunctionsSize = std::tuple_size<
         decltype(derivativeFunctions)>{};
@@ -133,21 +132,15 @@ struct StateSpaceSystem
 
     constexpr static void evaluate(
         std::span<const double, stateSize + controlSize> statesIn,
-        std::span<double, stateSize> derivativeValuesOut)
+        std::span<double, stateSize> derivativesOut)
     {
-
-        detail::for_each_in(
-            stateIndices, derivativeFunctions,
-            [statesIn, derivativeValuesOut]<typename T0>(
-            auto /*idx*/, T0 derivative) {
-                constexpr auto outIdx = get_idx<typename
-                    std::remove_cvref_t<T0>::Operand, SystemType>();
-                derivativeValuesOut[outIdx] =
-                    derivative.template evaluate<AllStates>(
-                        statesIn
-                        );
-            }
-            );
+        detail::tuple_for_each(derivativeFunctions,
+                            [statesIn, derivativesOut]<typename DerivativeType>(DerivativeType derivative) {
+                                constexpr auto outIdx = get_idx<typename DerivativeType::Operand, SystemType>();
+                                derivativesOut[outIdx] = derivative.template evaluate<AllStates>(statesIn);
+                            }
+        );
+        
     }
 
     static std::string format_values(

@@ -12,9 +12,15 @@ namespace codys {
 namespace detail {
 
 template<typename Tuple, typename Func, std::size_t... idxs>
-constexpr void for_each_in(std::integer_sequence<std::size_t, idxs...> /*indices*/, Tuple tup, Func func)
+constexpr void tuple_for_each_impl(std::integer_sequence<std::size_t, idxs...> /*indices*/, Tuple tup, Func func)
 {
-    (func(idxs, std::get<idxs>(tup)),...);
+    (func(std::get<idxs>(tup)),...);
+}
+
+template<typename Tuple, typename Func>
+constexpr void tuple_for_each(Tuple tup, Func func)
+{
+    tuple_for_each_impl(std::make_index_sequence<std::tuple_size_v<Tuple>>{}, tup, func);
 }
 
 template <class T, class Tuple>
@@ -38,17 +44,13 @@ struct TagIndex<T, std::tuple<Ts...>> {
 
 template <typename SystemType, typename StateSpaceType>
 constexpr bool all_states_have_derivatives() {
-    constexpr auto states = SystemType{};
-    constexpr std::size_t stateSize = std::tuple_size_v<SystemType>;
-    constexpr auto stateIndices = std::make_index_sequence<stateSize>{};
-    
     bool ret = true;
-    for_each_in(stateIndices, states, [&ret](auto /*idx*/, [[maybe_unused]] auto state) {
+    tuple_for_each(SystemType{}, [&ret]<typename StateType>(StateType /*state*/) {
         constexpr auto ind = TagIndex<
-            typename std::remove_cvref_t<decltype(state)>,
+            StateType,
             std::remove_cvref_t<decltype(StateSpaceType::make_dot())>>::index;
 
-        ret &= (ind >= 0) && (ind < stateSize);
+        ret &= (ind >= 0) && (ind < std::tuple_size_v<SystemType>);
     });
 
     return ret;
