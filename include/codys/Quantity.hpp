@@ -37,18 +37,18 @@ struct StringLiteral
 };
 
 template <typename Tag, typename Unit_, StringLiteral symbol = "">
-struct State {
+struct Quantity {
     using Unit = Unit_;
-    using depends_on = std::tuple<State>;
+    using depends_on = std::tuple<Quantity>;
 
     template <class SystemType, std::size_t N>
     constexpr static double evaluate(std::span<const double, N> arr) {
-        return arr[get_idx<State, SystemType>()];
+        return arr[get_idx<Quantity, SystemType>()];
     }
 
     template <class SystemType>
     constexpr static auto format_in() {
-        constexpr auto index = get_idx<State, SystemType>();
+        constexpr auto index = get_idx<Quantity, SystemType>();
         constexpr auto compiled = FMT_COMPILE("{{{}}}");
         constexpr auto size = fmt::formatted_size(compiled, index);
         auto result = std::array<char, size>();
@@ -72,11 +72,19 @@ struct ScalarValue
 
     template <class SystemType>
     constexpr static auto format_in() {
-        constexpr auto compiled = FMT_COMPILE("{:.3}");
-        constexpr auto size = fmt::formatted_size(compiled, value);
-        auto result = std::array<char, size>();
-        fmt::format_to(result.data(), compiled, value);
-        return result;
+        if constexpr (value_::den == 1) {
+            constexpr auto compiled = FMT_COMPILE("{}");
+            constexpr auto size = fmt::formatted_size(compiled, value_::num);
+            auto result = std::array<char, size>();
+            fmt::format_to(result.data(), compiled, value_::num);
+            return result;
+        } else {
+            constexpr auto compiled = FMT_COMPILE("({}/{})");
+            constexpr auto size = fmt::formatted_size(compiled, value_::num, value_::den);
+            auto result = std::array<char, size>();
+            fmt::format_to(result.data(), compiled, value_::num, value_::den);
+            return result;
+        }
     }
 };
 
@@ -84,7 +92,7 @@ struct ScalarValue
 } // namespace codys
 
 template <typename Tag, typename Unit_, ::codys::StringLiteral symbol>
-struct fmt::formatter<::codys::State<Tag, Unit_, symbol>>
+struct fmt::formatter<::codys::Quantity<Tag, Unit_, symbol>>
 {
     template <typename ParseContext>
     // ReSharper disable once CppMemberFunctionMayBeStatic
@@ -94,7 +102,7 @@ struct fmt::formatter<::codys::State<Tag, Unit_, symbol>>
     }
 
     template <typename FormatContext>
-    constexpr auto format(const ::codys::State<Tag, Unit_, symbol>& /*state*/, FormatContext& ctx) const
+    constexpr auto format(const ::codys::Quantity<Tag, Unit_, symbol>& /*quantity*/, FormatContext& ctx) const
     {
         return fmt::format_to(
             ctx.out(),

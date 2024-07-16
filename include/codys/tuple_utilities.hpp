@@ -87,12 +87,20 @@ struct distinct_tuple_of_impl<std::tuple<TypesA...>, TupleB, std::index_sequence
 
 // replace with std::tuple_like in C++23:
 template <typename Tuple>
-concept tuple_like = requires(Tuple tuple)
+constexpr bool empty_tuple = std::tuple_size_v<std::remove_cvref_t<Tuple>> == 0;
+
+// replace with std::tuple_like in C++23:
+template <typename Tuple>
+concept sized_tuple = requires(Tuple tuple)
 {
     std::get<0>(tuple);
     std::declval<std::tuple_element_t<0, std::remove_cvref_t<Tuple>>>();
     std::tuple_size_v<std::remove_cvref_t<Tuple>>;
 };
+
+template <typename Tuple>
+concept tuple_like = empty_tuple<Tuple> || sized_tuple<Tuple>;
+
 
 /// ********* Indexing 
 

@@ -1,10 +1,13 @@
 #pragma once
 
 #include <codys/Concepts.hpp>
-#include <codys/State.hpp>
+#include <codys/Quantity.hpp>
 #include <codys/tuple_utilities.hpp>
 
 #include <units/math.h>
+
+#include <fmt/format.h>
+#include <fmt/compile.h>
 
 #include <span>
 #include <tuple>
@@ -12,10 +15,10 @@
 namespace codys
 {
 
-template <typename Expression, class States = typename Expression::depends_on, std::size_t N = std::tuple_size_v<typename Expression::depends_on>>
+template <typename Expression, class Quantities = typename Expression::depends_on, std::size_t N = std::tuple_size_v<typename Expression::depends_on>>
 concept SystemExpression = requires(Expression expr, std::span<const double, N> in)
 {
-    { expr.template evaluate<States, N>(in) } -> std::same_as<double>;
+    { expr.template evaluate<Quantities, N>(in) } -> std::same_as<double>;
 };
 
 template <std::size_t N>

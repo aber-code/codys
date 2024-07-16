@@ -9,7 +9,7 @@
 
 #include <codys/Derivative.hpp>
 #include <codys/Operators.hpp>
-#include <codys/State.hpp>
+#include <codys/Quantity.hpp>
 #include <codys/StateSpaceSystem.hpp>
 #include <codys/tuple_utilities.hpp>
 
@@ -18,18 +18,18 @@
 #include <type_traits>
 #include <string>
 
-using PositionX0 = codys::State<class PositionX0_, units::isq::si::length<units::isq::si::metre>, "x_0">;
-using PositionX1 = codys::State<class PositionX1_, units::isq::si::length<units::isq::si::metre>, "x_1">;
-using Velocity = codys::State<class Velocity_, units::isq::si::speed<units::isq::si::metre_per_second> , "v">;
+using PositionX0 = codys::Quantity<class PositionX0_, units::isq::si::length<units::isq::si::metre>, "x_0">;
+using PositionX1 = codys::Quantity<class PositionX1_, units::isq::si::length<units::isq::si::metre>, "x_1">;
+using Velocity = codys::Quantity<class Velocity_, units::isq::si::speed<units::isq::si::metre_per_second> , "v">;
 using BasicMotions = std::tuple<PositionX0, PositionX1, Velocity>;
 
-using Acceleration = codys::State<class Acceleration_, units::isq::si::acceleration<units::isq::si::metre_per_second_sq>, "a">;
-using Rotation = codys::State<class Rotation_, units::angle<units::radian, double>>;
+using Acceleration = codys::Quantity<class Acceleration_, units::isq::si::acceleration<units::isq::si::metre_per_second_sq>, "a">;
+using Rotation = codys::Quantity<class Rotation_, units::angle<units::radian, double>>;
 using BasicControls = std::tuple<Acceleration, Rotation>;
 
 using namespace units::isq::si::references;
 using dacc_ds_unit = std::remove_cvref_t<decltype(std::declval<units::isq::si::acceleration<units::isq::si::metre_per_second_sq>>() / (1*s))>;
-using PropellerForce = codys::State<class PropellerForce_, dacc_ds_unit>;
+using PropellerForce = codys::Quantity<class PropellerForce_, dacc_ds_unit>;
 
 using per_second_sq_unit = std::remove_cvref_t<decltype(1 / (1*s) / (1*s))>;
 constexpr auto forward_water_resitance = (Velocity{}) * codys::ScalarValue<std::ratio<-1>, per_second_sq_unit >{};

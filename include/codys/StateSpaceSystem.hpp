@@ -95,11 +95,7 @@ template <typename... DerivativeEquation>
 constexpr auto getStateDependenciesDefinedBy(
     const std::tuple<DerivativeEquation...>& /*derivatives*/)
 {
-    using depends_on =
-        to_unique_tuple_t<decltype(std::tuple_cat(
-            std::declval<typename DerivativeEquation::depends_on>()...
-            ))>;
-
+    using depends_on = to_unique_tuple_t<tuple_cat_t<typename DerivativeEquation::depends_on...>>;
     return depends_on{};
 }
 
@@ -204,53 +200,53 @@ struct expression_of
 {
 };
 
-template <typename T, typename... Derivatives>
-struct expression_of<T, std::tuple<Derivatives...>>
-{
-    using tupleType = std::tuple<Derivatives...>;
-    using operands = states_of_t<tupleType>;
-    constexpr static auto index = get_operator_idx<T, tupleType>();
+template<std::size_t idx, typename Tuple>
+using at_idx_t = std::remove_cvref_t<decltype(std::get<idx>(std::declval<Tuple>()))>;
 
-    template <typename U = T> requires detail::Contains<T, operands>::value
-    constexpr static auto from(tupleType derivatives)
+template <typename T, typename... Derivative>
+struct expression_of<T, std::tuple<Derivative...>>
+{
+    using derivatives = std::tuple<Derivative...>;
+    using operands = std::tuple<typename Derivative::Operand...>;
+
+    template <typename U = T> requires detail::Contains<U, operands>::value
+    constexpr static auto value()
     {
-        return std::tuple<typename std::remove_cvref_t<decltype(std::get<index>(derivatives))>::Expression>{};
+        constexpr auto index = get_idx<U, operands>();
+        return std::tuple<typename at_idx_t<index, derivatives>::Expression>{};
     }
 
     template <typename U = T>
-    constexpr static std::tuple<> from(tupleType)
+    constexpr static std::tuple<> value()
     {
         return {};
     }
 };
 
-template <typename T, typename... Derivatives>
-constexpr auto expression_of_from(std::tuple<Derivatives...> derivatives)
-{
-    return expression_of<T, std::tuple<Derivatives...>>::from(derivatives);
-}
+template<typename T, tuple_like Derivatives>
+constexpr auto expression_of_v = expression_of<T, Derivatives>::value();
 
-template <typename... Expressions>
-constexpr auto combineExpression(std::tuple<Expressions...> expr)
+template <typename... Expression>
+constexpr auto combineExpressions(std::tuple<Expression...> expr)
 {
-    return (std::get<Expressions>(expr) + ...);
+    return (std::get<Expression>(expr) + ...);
 }
 
 template <typename Operand, typename... DerivativeSystem>
-constexpr auto combineExpressionFor()
+constexpr auto combineExpressionsFor()
 {
-    return combineExpression(
+    return combineExpressions(
         std::tuple_cat(
-            expression_of_from<Operand>(DerivativeSystem::make_dot())...
+            expression_of_v<Operand, decltype(DerivativeSystem::make_dot())>...
             )
         );
 }
 
 template <typename... System, typename... Operands>
-constexpr auto combineExpressionsFor(std::tuple<Operands...>)
+constexpr auto combineDerivatesFor(std::tuple<Operands...>)
 {
     return std::make_tuple(
-        dot<Operands>(combineExpressionFor<Operands, System...>())...
+        dot<Operands>(combineExpressionsFor<Operands, System...>())...
         );
 }
 
@@ -262,7 +258,7 @@ struct combine
 
     constexpr static auto make_dot()
     {
-        return combineExpressionsFor<System...>(combinedOperands{});
+        return combineDerivatesFor<System...>(combinedOperands{});
     }
 };
 

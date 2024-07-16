@@ -10,7 +10,7 @@
 
 #include <codys/Derivative.hpp>
 #include <codys/Operators.hpp>
-#include <codys/State.hpp>
+#include <codys/Quantity.hpp>
 #include <codys/tuple_utilities.hpp>
 #include <codys/StateSpaceSystem.hpp>
 
@@ -30,20 +30,20 @@ using PositionTag = class Position_;
 using PositionUnit = units::isq::si::length<units::isq::si::metre>;
 using PositionUnitSq = units::isq::si::area<units::isq::si::square_metre>;
 using Dimensionless = units::dimensionless<units::one>;
-using Position = codys::State<PositionTag, PositionUnit>;
+using Position = codys::Quantity<PositionTag, PositionUnit>;
 using VelocityUnit = units::isq::si::speed<units::isq::si::metre_per_second>;
-using Velocity = codys::State<class Vel_, VelocityUnit, "V">;
-using Rotation = codys::State<class Rot_, units::angle<units::radian, double>>;
+using Velocity = codys::Quantity<class Vel_, VelocityUnit, "V">;
+using Rotation = codys::Quantity<class Rot_, units::angle<units::radian, double>>;
 
 using BasicMotions = std::tuple<Position, Velocity>;
 
-using PositionX0 = codys::State<class PositionX0_, units::isq::si::length<units::isq::si::metre>>;
-using PositionX1 = codys::State<class PositionX1_, units::isq::si::length<units::isq::si::metre>>;
-using Acceleration = codys::State<class Acceleration_, units::isq::si::acceleration<units::isq::si::metre_per_second_sq>>;
+using PositionX0 = codys::Quantity<class PositionX0_, units::isq::si::length<units::isq::si::metre>>;
+using PositionX1 = codys::Quantity<class PositionX1_, units::isq::si::length<units::isq::si::metre>>;
+using Acceleration = codys::Quantity<class Acceleration_, units::isq::si::acceleration<units::isq::si::metre_per_second_sq>>;
 
 using namespace units::isq::si::references;
 using dacc_ds_unit = std::remove_cvref_t<decltype(std::declval<units::isq::si::acceleration<units::isq::si::metre_per_second_sq>>() / (1*s))>;
-using PropellerForce = codys::State<class PropellerForce_, dacc_ds_unit>;
+using PropellerForce = codys::Quantity<class PropellerForce_, dacc_ds_unit>;
 
 struct TestSystemMotions
 {
@@ -413,9 +413,8 @@ TEST_CASE("Expression is determined correctly", "[TypeUtil]")
 {
   using dot_velocity = std::remove_cvref_t<decltype(codys::dot<Velocity>(Acceleration{} + Acceleration{}))>;
   using derivativeTypes = std::tuple<dot_velocity>;
-  STATIC_REQUIRE(std::is_same_v<codys::expression_of<Velocity, derivativeTypes>::tupleType, derivativeTypes>);
+  STATIC_REQUIRE(std::is_same_v<codys::expression_of<Velocity, derivativeTypes>::derivatives, derivativeTypes>);
   STATIC_REQUIRE(std::is_same_v<codys::expression_of<Velocity, derivativeTypes>::operands, std::tuple<Velocity>>);
-  STATIC_REQUIRE(codys::expression_of<Velocity, derivativeTypes>::index == 0);
 }
 
 struct TestSystemMotionsVelOnly
@@ -450,14 +449,14 @@ TEST_CASE("Expressions are combined correctly", "[TypeUtil]")
 {
   constexpr auto acc = Acceleration{};
   constexpr auto acc2 = Acceleration{} + Acceleration{};
-  constexpr auto accCombined = codys::combineExpression(std::make_tuple(acc, acc2));
+  constexpr auto accCombined = codys::combineExpressions(std::make_tuple(acc, acc2));
   constexpr auto acc3 = Acceleration{} + (Acceleration{} + Acceleration{});
   STATIC_REQUIRE(std::is_same_v< std::remove_cvref_t<decltype(accCombined)>, std::remove_cvref_t<decltype(acc3)>>);
 
-  constexpr auto accCombinedWithEmptySet = codys::combineExpression(std::tuple_cat(std::make_tuple(acc2), std::tuple<>{}));
+  constexpr auto accCombinedWithEmptySet = codys::combineExpressions(std::tuple_cat(std::make_tuple(acc2), std::tuple<>{}));
   STATIC_REQUIRE(std::is_same_v< std::remove_cvref_t<decltype(accCombinedWithEmptySet)>, std::remove_cvref_t<decltype(acc2)>>);
 
-  constexpr auto accCombinedOneArgument = codys::combineExpression(std::make_tuple(acc2));
+  constexpr auto accCombinedOneArgument = codys::combineExpressions(std::make_tuple(acc2));
   STATIC_REQUIRE(std::is_same_v< std::remove_cvref_t<decltype(accCombinedOneArgument)>, std::remove_cvref_t<decltype(acc2)>>);
 }
 

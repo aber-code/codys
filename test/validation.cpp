@@ -1,3 +1,6 @@
+#include "units/isq/si/angular_acceleration.h"
+#include "units/isq/si/angular_velocity.h"
+
 #include <catch2/catch_test_macros.hpp>
 
 #include <array>
@@ -10,83 +13,63 @@
 
 #include <codys/Derivative.hpp>
 #include <codys/Operators.hpp>
-#include <codys/State.hpp>
+#include <codys/Quantity.hpp>
 #include <codys/StateSpaceSystem.hpp>
 #include <codys/tuple_utilities.hpp>
 
 #include <fmt/format.h>
 
 #include <cmath>
+#include <iostream>
 #include <tuple>
 #include <type_traits>
 
 using namespace units::isq::si::references;
+using namespace units::isq::si;
+using namespace units;
 
-namespace
+namespace codys
 {
-using Dimensionless = units::dimensionless<units::one>;
 
-using PositionX0 = codys::State<class PositionX0_, units::isq::si::length<units::isq::si::metre>, "x_0">;
-using PositionX1 = codys::State<class PositionX1_, units::isq::si::length<units::isq::si::metre>, "x_1">;
-using Velocity2 = codys::State<class Velocity2_, units::isq::si::speed<units::isq::si::metre_per_second>, "v">;
-using BasicMotions = std::tuple<PositionX0, PositionX1, Velocity2>;
+using PositionX0 = Quantity<class PositionX0_, length<metre>, "x_0">;
+using PositionX1 = Quantity<class PositionX1_, length<metre>, "x_1">;
+using Velocity = Quantity<class Velocity2_, speed<metre_per_second>, "v">;
+using Yaw = Quantity<class Yaw_, angle<radian, double>, "\\Phi">;
+using Rotation = Quantity<class Rotation_, angular_velocity<radian_per_second>, "\\omega">;
+using PropellerAngle = Quantity<class PropellerAngle_, angle<radian, double>, "\\Psi">;
+using EOT = Quantity<class PropellerForce_, dimensionless<one>, "EOT">;
 
-using Acceleration = codys::State<class Acceleration_, units::isq::si::acceleration<units::isq::si::metre_per_second_sq>, "a">;
-using Rotation = codys::State<class Rotation_, units::angle<units::radian, double>>;
+using p1 = ScalarValue<std::ratio<1, 2>, acceleration<metre_per_second_sq>>;
+using p2 = ScalarValue<std::ratio<1, 3>, angular_acceleration<radian_per_second_sq>>;
+using hundret = ScalarValue<std::ratio<100>, dimensionless<one>>;
 
-using drot_ds_unit = std::remove_cvref_t<decltype(std::declval<units::angle<units::radian, double>>() / (1*s))>;
-using drot_dds_unit = std::remove_cvref_t<decltype(std::declval<drot_ds_unit>() / (1*s))>;
-using RotationalVelocity = codys::State<class RotationalVelocity_, drot_ds_unit>;
-using RotationalAcceleration = codys::State<class RotationalAcceleration_, drot_dds_unit>;
-
-
-using dacc_ds_unit = std::remove_cvref_t<decltype(std::declval<units::isq::si::acceleration<units::isq::si::metre_per_second_sq>>() / (1*s))>;
-
-using PropellerAngle = codys::State<class PropellerAngle_, units::angle<units::radian, double>>;
-using PropellerForce = codys::State<class PropellerForce_, dacc_ds_unit>;
-
-
-struct Motion2D
+struct DenebMotion
 {
     constexpr static auto make_dot()
     {
-    
-        constexpr auto dot_pos_x0 = codys::dot<PositionX0>(Velocity2{} * codys::cos(Rotation{}));
-        constexpr auto dot_pos_x1 = codys::dot<PositionX1>(Velocity2{} * codys::sin(Rotation{}));
-        constexpr auto dot_velocity = codys::dot<Velocity2>(Acceleration{});
-        constexpr auto dot_rotation = codys::dot<Rotation>(RotationalVelocity{});
-        constexpr auto dot_rotation_vel = codys::dot<RotationalVelocity>(RotationalAcceleration{});
-        return std::make_tuple(dot_velocity, dot_pos_x0, dot_pos_x1, dot_rotation, dot_rotation_vel);
+        constexpr auto dot_pos_x0 = codys::dot<PositionX0>(Velocity{} * codys::cos(Yaw{}));
+        constexpr auto dot_pos_x1 = codys::dot<PositionX1>(Velocity{} * codys::sin(Yaw{}));
+        constexpr auto dot_velocity = codys::dot<Velocity>(p1{} * codys::cos(PropellerAngle{}) * (EOT{} / hundret{}));
+        constexpr auto dot_yaw = codys::dot<Yaw>(Rotation{});
+        constexpr auto dot_rotation = codys::dot<Rotation>(p2{} * codys::sin(PropellerAngle{}) * (EOT{} / hundret{}));
+
+        return std::make_tuple(dot_pos_x0, dot_pos_x1, dot_yaw, dot_velocity, dot_rotation);
     }
 };
 
-struct TurnablePropeller
-{
-    constexpr static auto make_dot()
-    {
-        constexpr auto dot_acc = codys::dot<Acceleration>(codys::cos(PropellerAngle{}) * PropellerForce{});
-    
-        return std::make_tuple(dot_acc);
-    }
-};
-
-struct Motion2DAdvanced
-{
-    constexpr static auto make_dot()
-    {
-        return codys::combine<Motion2D,TurnablePropeller>::make_dot();
-    }
-};
-} // namespace 
 
 TEST_CASE("RealSystem is evaluated correctly", "[RealSystem]")
 {
-    using Sys = codys::StateSpaceSystemOf<Motion2DAdvanced>;
+    using Sys = StateSpaceSystemOf<DenebMotion>;
 
-    constexpr std::array statesIn{  0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+    constexpr std::array statesIn{  0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 50.0 };
 
-    std::array out{ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
+    std::array out{ 0.0, 0.0, 0.0, 0.0, 0.0};
 
     Sys::evaluate(statesIn, out);
-    [[maybe_unused]] const auto formatStr = Sys::format_values(statesIn);
+    std::cout << Sys::format_values(statesIn);
+    std::cout << "\n------------\n";
+    std::cout << Sys::format();
+}
+
 }
