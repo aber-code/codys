@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Concepts.hpp"
+#include <https://raw.githubusercontent.com/aber-code/codys/refs/heads/http-include/include/codys/Concepts.hpp>
 
-#include <codys/tuple_utilities.hpp>
+#include <https://raw.githubusercontent.com/aber-code/codys/refs/heads/http-include/include/codys/tuple_utilities.hpp>
 
 #include <fmt/format.h>
 #include <fmt/std.h>
