@@ -1,6 +1,6 @@
 #pragma once
 
-#include <codys/tuple_utilities.hpp>
+#include <https://raw.githubusercontent.com/aber-code/codys/http-include/include/codys/tuple_utilities.hpp>
 
 #include <algorithm>
 #include <span>
