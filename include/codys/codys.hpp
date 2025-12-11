@@ -1,6 +1,44 @@
 #pragma once
 
+#include <algorithm>
+#include <span>
 #include <tuple>
+#include <type_traits>
+
+#include "fmt/compile.h"
+
+#include <units/isq/si/time.h>
+
+#include <span>
+#include <type_traits>
+
+#include <fmt/format.h>
+#include <fmt/std.h>
+#include <fmt/compile.h>
+
+#include <algorithm>
+#include <array>
+#include <tuple>
+#include <span>
+#include <string_view>
+
+#include <units/math.h>
+
+#include <fmt/format.h>
+#include <fmt/compile.h>
+
+#include <span>
+#include <tuple>
+
+
+
+#include <array>
+#include <algorithm>
+#include <span>
+#include <tuple>
+#include <type_traits>
+#include <utility>
+
 
 namespace codys {
 
@@ -139,11 +177,6 @@ using distinct_tuple_of = typename detail::distinct_tuple_of_impl<TupleA, TupleB
 
 } // namespace codys
 
-#include <algorithm>
-#include <span>
-#include <tuple>
-#include <type_traits>
-
 namespace codys {
 
 namespace detail {
@@ -239,13 +272,6 @@ concept DerivativeSystemOf = TypeIndexedList<States> && detail::all_states_have_
 
 } // namespace codys
 
-#include "fmt/compile.h"
-
-#include <units/isq/si/time.h>
-
-#include <span>
-#include <type_traits>
-
 namespace codys
 {
 
@@ -317,15 +343,7 @@ struct fmt::formatter<::codys::Derivative<Operand_, Expression_>>
 
 
 
-#include <fmt/format.h>
-#include <fmt/std.h>
-#include <fmt/compile.h>
 
-#include <algorithm>
-#include <array>
-#include <tuple>
-#include <span>
-#include <string_view>
 
 namespace codys {
 
@@ -437,14 +455,6 @@ template<set_of_types Lhs, set_of_types Rhs>
 using set_difference_t = distinct_tuple_of<Lhs, Rhs>;
 
 } // namespace codys
-
-#include <units/math.h>
-
-#include <fmt/format.h>
-#include <fmt/compile.h>
-
-#include <span>
-#include <tuple>
 
 namespace codys
 {
@@ -674,15 +684,6 @@ constexpr auto cos(Lhs /*lhs*/)
 }
 
 } // namespace codys
-
-
-
-#include <array>
-#include <algorithm>
-#include <span>
-#include <tuple>
-#include <type_traits>
-#include <utility>
 
 namespace codys
 {
