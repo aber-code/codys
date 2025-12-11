@@ -1,8 +1,8 @@
 #pragma once
 
-#include <codys/Concepts.hpp>
-#include <codys/Derivative.hpp>
-#include <codys/tuple_utilities.hpp>
+#include <https://raw.githubusercontent.com/aber-code/codys/refs/heads/http-include/include/codys/Concepts.hpp>
+#include <https://raw.githubusercontent.com/aber-code/codys/refs/heads/http-include/include/codys/Derivative.hpp>
+#include <https://raw.githubusercontent.com/aber-code/codys/refs/heads/http-include/include/codys/tuple_utilities.hpp>
 
 #include <array>
 #include <algorithm>
